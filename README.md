@@ -352,6 +352,71 @@ sequenceDiagram
     - `배달 주문(Delivery Order)`이 완료되면 `완료된 주문(Completed Order)`이 된다.
   - `배달 주문(Delivery Order)`을 조회할 수 있다.
 
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant DeliveryOrderService as 배달 주문 서비스
+    participant DeliveryOrder as 배달 주문
+    participant Menu as 메뉴
+    participant MenuRepository as 메뉴 리포지토리
+    participant DeliveryOrderRepository as 배달 주문 리포지토리
+    participant Policy as 정책
+    participant DeliveryAgency as 배달 대행사
+
+    User->>DeliveryOrderService: 배달 주문 생성 요청
+    DeliveryOrderService->>MenuRepository: 메뉴 찾기
+    MenuRepository-->>DeliveryOrderService: 메뉴
+    DeliveryOrderService->>Policy: 주문 등록 정책 확인
+    Policy-->>DeliveryOrderService: 정책 확인 완료
+    DeliveryOrderService->>DeliveryOrder: 배달 주문 생성(메뉴, 배달주문)
+    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
+    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
+    DeliveryOrderService-->>User: 주문 등록됨 (접수 대기 중)
+
+    User->>DeliveryOrderService: 배달 주문 접수 요청
+    DeliveryOrderService->>Policy: 접수 가능 여부 확인
+    Policy-->>DeliveryOrderService: 정책 확인 완료
+    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(접수 완료)
+    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
+    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
+    DeliveryOrderService->>DeliveryAgency: 배달 요청
+    DeliveryOrderService-->>User: 주문 접수됨
+
+    User->>DeliveryOrderService: 배달 주문 서빙 요청
+    DeliveryOrderService->>Policy: 서빙 가능 여부 확인
+    Policy-->>DeliveryOrderService: 정책 확인 완료
+    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(서빙 완료)
+    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
+    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
+    DeliveryOrderService-->>User: 서빙 완료됨
+
+    User->>DeliveryOrderService: 배달 시작 요청
+    DeliveryOrderService->>Policy: 배달 시작 가능 여부 확인
+    Policy-->>DeliveryOrderService: 정책 확인 완료
+    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(배달 중)
+    DeliveryOrderService->>DeliveryAgency: 배달 시작 요청
+    DeliveryAgency-->>DeliveryOrderService: 배달 시작 확인
+    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
+    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
+    DeliveryOrderService-->>User: 배달 시작됨
+
+    DeliveryAgency->>DeliveryOrderService: 배달 완료 요청
+    DeliveryOrderService->>Policy: 배달 완료 가능 여부 확인
+    Policy-->>DeliveryOrderService: 정책 확인 완료
+    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(배달 완료)
+    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
+    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
+    DeliveryOrderService-->>User: 배달 완료됨
+
+    User->>DeliveryOrderService: 주문 완료 요청
+    DeliveryOrderService->>Policy: 주문 완료 가능 여부 확인
+    Policy-->>DeliveryOrderService: 정책 확인 완료
+    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(완료)
+    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
+    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
+    DeliveryOrderService-->>User: 주문 완료됨
+```
+
 ### 포장 주문(TakeOut Order) 컨텍스트
 
 #### 포장 주문(TakeOut Order)
