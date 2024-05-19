@@ -224,7 +224,7 @@ docker compose -p kitchenpos up -d
 #### 상품 (Product)
 - 속성
   - `상품(Product)`은 유일하게 식별 가능한 `식별자(Id)`를 가진다.
-  - `상품(Product)`은 상품의 이름인 `상품 이름(Product Name)`을 가진다.
+  - `상품(Product)`은 상품의 이름인 `상품 이름(Name)`을 가진다.
     - `상품 이름(Product Name)`은 비어있을 수 없다.
     - `상품 이름(Product Name)`은 `비속어(Profanity)`를 포함할 수 없다.
   - `상품(Product)`은 상품의 가격인 `상품가격(Price)`을 가진다.
@@ -232,7 +232,24 @@ docker compose -p kitchenpos up -d
 - 행위
   - `상품(Product)`을 등록할 수 있다.
   - `상품(Product)`의 `상품가격(Price)`을 변경할 수 있다. 
-  - `상품(Product)`을 조회할 수 있다.
+    - `상품 가격(Price)`은 0 이상의 값을 가져야 한다.
+    - `상품 가격(Price)` 이 변경될 때, 해당 상품을 포함하는 모든 메뉴의 가격이 각 메뉴의 상품 가격 합계보다 크다면 해당 메뉴는 노출되지 않도록 설정된다.
+  - 0개 이상의 `상품(Product)` 목록을 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant Product as 상품
+    participant Policy as 정책
+    User ->> Product: 상품 등록 요청
+    Product ->> Policy: 상품 등록 정책 검증
+    Policy -->> Product: 검증 완료
+    Product -->> User: 상품 등록 완료
+		User ->> Product: 상품 가격 변경 정책 요청
+    Product ->> Policy: 상품 가격 변경 정책 검증
+    Policy -->> Product: 검증 완료
+    Product -->> User: 상품 가격 변경 완료
+```
 
 
 ### 메뉴 컨텍스트
@@ -271,6 +288,25 @@ docker compose -p kitchenpos up -d
   - `메뉴(Menu)`를 `노출(Display)`처리 할 수 있다.
   - `메뉴(Menu)`를 `숨김(Hide)` 처리 할 수 있다.
   - `메뉴(Menu)`를 조회할 수 있다.
+
+```mermaid
+sequenceDiagram
+    actor User as 사용자
+    participant Menu as 메뉴
+    participant Policy as 정책
+    User ->> Menu: 메뉴 등록 요청
+    Menu ->> Policy: 메뉴 등록 정책 검증
+    Policy -->> Menu: 검증 완료
+    Menu -->> User: 메뉴 등록 완료
+    User ->> Menu: 메뉴 가격 변경 요청
+    Menu ->> Policy: 메뉴 가격 변경 정책 검증
+    Policy -->> Menu: 검증 완료
+    Menu -->> User: 메뉴 가격 변경 완료
+    User ->> Menu: 메뉴 노출/숨김 처리 요청
+    Menu ->> Policy: 메뉴 노출/숨김 정책 검증
+    Policy -->> Menu: 검증 완료
+    Menu -->> User: 메뉴 노출/숨김 처리 완료
+```
 
 ### 배달 주문(Delivery Order) 컨텍스트
 
