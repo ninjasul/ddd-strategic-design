@@ -418,9 +418,9 @@ sequenceDiagram
       User->>DeliveryOrderService: 주문 완료 요청
       DeliveryOrderService->>Policy: 주문 완료 가능 여부 확인
       Policy-->>DeliveryOrderService: 정책 확인 완료
-      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(완료)
       DeliveryOrderService->>OrderRepository: 배달 주문 저장
       OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(완료)경
       DeliveryOrderService-->>User: 주문 완료됨
   ```
 
@@ -598,10 +598,10 @@ sequenceDiagram
         User->>EatInOrderService: 주문 완료 요청
         EatInOrderService->>Policy: 주문 완료 가능 여부 확인
         Policy-->>EatInOrderService: 정책 확인 완료
+        EatInOrderService->>OrderTable: 주문 테이블 비움
+        OrderTable-->>EatInOrderService: 주문 테이블 비움 완료
         EatInOrderService->>EatInOrder: 주문 상태 변경(완료)
         EatInOrderService->>OrderRepository: 매장 내 주문 저장
         OrderRepository-->>EatInOrderService: 매장 내 주문
-        EatInOrderService->>OrderTable: 주문 테이블 비움
-        OrderTable-->>EatInOrderService: 주문 테이블 비움 완료
         EatInOrderService-->>User: 주문 완료됨
     ```
