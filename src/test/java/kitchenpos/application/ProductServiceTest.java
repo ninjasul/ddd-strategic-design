@@ -113,10 +113,7 @@ class ProductServiceTest {
     }
 
     private Product createProductRequest(final String name, final BigDecimal price) {
-        final Product product = new Product();
-        product.setName(name);
-        product.setPrice(price);
-        return product;
+        return new Product(UUID.randomUUID(), name, price, purgomalumClient);
     }
 
     private Product changePriceRequest(final long price) {
@@ -124,8 +121,6 @@ class ProductServiceTest {
     }
 
     private Product changePriceRequest(final BigDecimal price) {
-        final Product product = new Product();
-        product.setPrice(price);
-        return product;
+        return new Product(UUID.randomUUID(), "", price, purgomalumClient);
     }
 }

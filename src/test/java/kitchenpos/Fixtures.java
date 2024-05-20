@@ -1,5 +1,6 @@
 package kitchenpos;
 
+import kitchenpos.application.FakePurgomalumClient;
 import kitchenpos.domain.Menu;
 import kitchenpos.domain.MenuGroup;
 import kitchenpos.domain.MenuProduct;
@@ -9,6 +10,7 @@ import kitchenpos.domain.OrderStatus;
 import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderType;
 import kitchenpos.domain.Product;
+import kitchenpos.infra.PurgomalumClient;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -17,6 +19,9 @@ import java.util.Random;
 import java.util.UUID;
 
 public class Fixtures {
+
+    public static final PurgomalumClient purgomalumClient = new FakePurgomalumClient();
+
     public static final UUID INVALID_ID = new UUID(0L, 0L);
 
     public static Menu menu() {
@@ -122,10 +127,6 @@ public class Fixtures {
     }
 
     public static Product product(final String name, final long price) {
-        final Product product = new Product();
-        product.setId(UUID.randomUUID());
-        product.setName(name);
-        product.setPrice(BigDecimal.valueOf(price));
-        return product;
+        return new Product(UUID.randomUUID(), name, BigDecimal.valueOf(price), purgomalumClient);
     }
 }
