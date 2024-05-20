@@ -1,9 +1,11 @@
 package kitchenpos.domain;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import kitchenpos.infra.PurgomalumClient;
 
 import java.util.UUID;
 
@@ -14,25 +16,27 @@ public class MenuGroup {
     @Id
     private UUID id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Embedded
+    private MenuGroupName name;
 
-    public MenuGroup() {
+    protected MenuGroup() {
+    }
+
+    public MenuGroup(String name) {
+        this.id = UUID.randomUUID();
+        this.name = new MenuGroupName(name);
+    }
+
+    public MenuGroup(UUID id, String name) {
+        this.id = id;
+        this.name = new MenuGroupName(name);
     }
 
     public UUID getId() {
         return id;
     }
 
-    public void setId(final UUID id) {
-        this.id = id;
-    }
-
     public String getName() {
-        return name;
-    }
-
-    public void setName(final String name) {
-        this.name = name;
+        return name.getValue();
     }
 }

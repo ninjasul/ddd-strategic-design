@@ -15,6 +15,10 @@ public class ProductPrice {
 	protected ProductPrice() {
 	}
 
+	public ProductPrice(long value) {
+		this(BigDecimal.valueOf(value));
+	}
+
 	public ProductPrice(BigDecimal value) {
 		if (value == null || value.compareTo(BigDecimal.ZERO) < 0) {
 			throw new IllegalArgumentException(INVALID_PRICE_ERROR);
