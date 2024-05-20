@@ -281,6 +281,7 @@ sequenceDiagram
     - `메뉴 상품(Menu Product)`은 `상품 가격(Product Price)`을 가진다.
     - `메뉴 상품(Menu Product)`은 `메뉴 상품 수량(Quantity)`을 가진다.
       - `메뉴 상품 수량(Quantity)`은 0 이상의 값을 가져야 한다.
+
       
 - 행위 
   - `메뉴(Menu)`를 등록할 수 있다.
@@ -289,24 +290,27 @@ sequenceDiagram
   - `메뉴(Menu)`를 `숨김(Hide)` 처리 할 수 있다.
   - `메뉴(Menu)`를 조회할 수 있다.
 
-```mermaid
-sequenceDiagram
-    actor User as 사용자
-    participant Menu as 메뉴
-    participant Policy as 정책
-    User ->> Menu: 메뉴 등록 요청
-    Menu ->> Policy: 메뉴 등록 정책 검증
-    Policy -->> Menu: 검증 완료
-    Menu -->> User: 메뉴 등록 완료
-    User ->> Menu: 메뉴 가격 변경 요청
-    Menu ->> Policy: 메뉴 가격 변경 정책 검증
-    Policy -->> Menu: 검증 완료
-    Menu -->> User: 메뉴 가격 변경 완료
-    User ->> Menu: 메뉴 노출/숨김 처리 요청
-    Menu ->> Policy: 메뉴 노출/숨김 정책 검증
-    Policy -->> Menu: 검증 완료
-    Menu -->> User: 메뉴 노출/숨김 처리 완료
-```
+
+- 시퀀스 다이어그램
+
+  ```mermaid
+  sequenceDiagram
+      actor User as 사용자
+      participant Menu as 메뉴
+      participant Policy as 정책
+      User ->> Menu: 메뉴 등록 요청
+      Menu ->> Policy: 메뉴 등록 정책 검증
+      Policy -->> Menu: 검증 완료
+      Menu -->> User: 메뉴 등록 완료
+      User ->> Menu: 메뉴 가격 변경 요청
+      Menu ->> Policy: 메뉴 가격 변경 정책 검증
+      Policy -->> Menu: 검증 완료
+      Menu -->> User: 메뉴 가격 변경 완료
+      User ->> Menu: 메뉴 노출/숨김 처리 요청
+      Menu ->> Policy: 메뉴 노출/숨김 정책 검증
+      Policy -->> Menu: 검증 완료
+      Menu -->> User: 메뉴 노출/숨김 처리 완료
+  ```
 
 ### 배달 주문(Delivery Order) 컨텍스트
 
@@ -328,6 +332,7 @@ sequenceDiagram
   - `배달 주문(Delivery Order)`은 `배송지 주소(Delivery Address)`를 가진다.
     - `배송지 주소(Delivery Address)`은 비어 있을 수 없다.
   - `배달 주문(Delivery Order)`은 `주문 상품(Order Line Item)`을 가진다.
+
 
 - 행위
   - `배달 주문(Delivery Order)`을 등록할 수 있다.
@@ -352,70 +357,72 @@ sequenceDiagram
     - `배달 주문(Delivery Order)`이 완료되면 `완료된 주문(Completed Order)`이 된다.
   - `배달 주문(Delivery Order)`을 조회할 수 있다.
 
-```mermaid
-sequenceDiagram
-    actor User as 사용자
-    participant DeliveryOrderService as 배달 주문 서비스
-    participant DeliveryOrder as 배달 주문
-    participant Menu as 메뉴
-    participant MenuRepository as 메뉴 리포지토리
-    participant DeliveryOrderRepository as 배달 주문 리포지토리
-    participant Policy as 정책
-    participant DeliveryAgency as 배달 대행사
 
-    User->>DeliveryOrderService: 배달 주문 생성 요청
-    DeliveryOrderService->>MenuRepository: 메뉴 찾기
-    MenuRepository-->>DeliveryOrderService: 메뉴
-    DeliveryOrderService->>Policy: 주문 등록 정책 확인
-    Policy-->>DeliveryOrderService: 정책 확인 완료
-    DeliveryOrderService->>DeliveryOrder: 배달 주문 생성(메뉴, 배달주문)
-    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
-    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
-    DeliveryOrderService-->>User: 주문 등록됨 (접수 대기 중)
-
-    User->>DeliveryOrderService: 배달 주문 접수 요청
-    DeliveryOrderService->>Policy: 접수 가능 여부 확인
-    Policy-->>DeliveryOrderService: 정책 확인 완료
-    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(접수 완료)
-    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
-    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
-    DeliveryOrderService->>DeliveryAgency: 배달 요청
-    DeliveryOrderService-->>User: 주문 접수됨
-
-    User->>DeliveryOrderService: 배달 주문 서빙 요청
-    DeliveryOrderService->>Policy: 서빙 가능 여부 확인
-    Policy-->>DeliveryOrderService: 정책 확인 완료
-    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(서빙 완료)
-    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
-    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
-    DeliveryOrderService-->>User: 서빙 완료됨
-
-    User->>DeliveryOrderService: 배달 시작 요청
-    DeliveryOrderService->>Policy: 배달 시작 가능 여부 확인
-    Policy-->>DeliveryOrderService: 정책 확인 완료
-    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(배달 중)
-    DeliveryOrderService->>DeliveryAgency: 배달 시작 요청
-    DeliveryAgency-->>DeliveryOrderService: 배달 시작 확인
-    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
-    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
-    DeliveryOrderService-->>User: 배달 시작됨
-
-    DeliveryAgency->>DeliveryOrderService: 배달 완료 요청
-    DeliveryOrderService->>Policy: 배달 완료 가능 여부 확인
-    Policy-->>DeliveryOrderService: 정책 확인 완료
-    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(배달 완료)
-    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
-    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
-    DeliveryOrderService-->>User: 배달 완료됨
-
-    User->>DeliveryOrderService: 주문 완료 요청
-    DeliveryOrderService->>Policy: 주문 완료 가능 여부 확인
-    Policy-->>DeliveryOrderService: 정책 확인 완료
-    DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(완료)
-    DeliveryOrderService->>DeliveryOrderRepository: 배달 주문 저장
-    DeliveryOrderRepository-->>DeliveryOrderService: 배달 주문
-    DeliveryOrderService-->>User: 주문 완료됨
-```
+- 시퀀스 다이어그램
+  ```mermaid
+  sequenceDiagram
+      actor User as 사용자
+      participant DeliveryOrderService as 배달 주문 서비스
+      participant DeliveryOrder as 배달 주문
+      participant Menu as 메뉴
+      participant MenuRepository as 메뉴 리포지토리
+      participant OrderRepository as 주문 리포지토리
+      participant Policy as 정책
+      participant DeliveryAgency as 배달 대행사
+  
+      User->>DeliveryOrderService: 배달 주문 생성 요청
+      DeliveryOrderService->>MenuRepository: 메뉴 찾기
+      MenuRepository-->>DeliveryOrderService: 메뉴
+      DeliveryOrderService->>Policy: 주문 등록 정책 확인
+      Policy-->>DeliveryOrderService: 정책 확인 완료
+      DeliveryOrderService->>DeliveryOrder: 배달 주문 생성(메뉴, 배달주문)
+      DeliveryOrderService->>OrderRepository: 배달 주문 저장
+      OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService-->>User: 주문 등록됨 (접수 대기 중)
+  
+      User->>DeliveryOrderService: 배달 주문 접수 요청
+      DeliveryOrderService->>Policy: 접수 가능 여부 확인
+      Policy-->>DeliveryOrderService: 정책 확인 완료
+      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(접수 완료)
+      DeliveryOrderService->>OrderRepository: 배달 주문 저장
+      OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService->>DeliveryAgency: 배달 요청
+      DeliveryOrderService-->>User: 주문 접수됨
+  
+      User->>DeliveryOrderService: 배달 주문 서빙 요청
+      DeliveryOrderService->>Policy: 서빙 가능 여부 확인
+      Policy-->>DeliveryOrderService: 정책 확인 완료
+      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(서빙 완료)
+      DeliveryOrderService->>OrderRepository: 배달 주문 저장
+      OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService-->>User: 서빙 완료됨
+  
+      User->>DeliveryOrderService: 배달 시작 요청
+      DeliveryOrderService->>Policy: 배달 시작 가능 여부 확인
+      Policy-->>DeliveryOrderService: 정책 확인 완료
+      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(배달 중)
+      DeliveryOrderService->>DeliveryAgency: 배달 시작 요청
+      DeliveryAgency-->>DeliveryOrderService: 배달 시작 확인
+      DeliveryOrderService->>OrderRepository: 배달 주문 저장
+      OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService-->>User: 배달 시작됨
+  
+      DeliveryAgency->>DeliveryOrderService: 배달 완료 요청
+      DeliveryOrderService->>Policy: 배달 완료 가능 여부 확인
+      Policy-->>DeliveryOrderService: 정책 확인 완료
+      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(배달 완료)
+      DeliveryOrderService->>OrderRepository: 배달 주문 저장
+      OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService-->>User: 배달 완료됨
+  
+      User->>DeliveryOrderService: 주문 완료 요청
+      DeliveryOrderService->>Policy: 주문 완료 가능 여부 확인
+      Policy-->>DeliveryOrderService: 정책 확인 완료
+      DeliveryOrderService->>DeliveryOrder: 주문 상태 변경(완료)
+      DeliveryOrderService->>OrderRepository: 배달 주문 저장
+      OrderRepository-->>DeliveryOrderService: 배달 주문
+      DeliveryOrderService-->>User: 주문 완료됨
+  ```
 
 ### 포장 주문(TakeOut Order) 컨텍스트
 
@@ -426,6 +433,7 @@ sequenceDiagram
     - `주문 상태(Order Status)`에는 `접수 대기 중(Waiting)`, `접수 완료(Accepted)`, `서빙 완료(Served)`, `완료(Completed)`가 있다.
   - `포장 주문(TakeOut Order)`은 주문을 한 일자와 시각을 표시하는 `주문 일시(Order Date Time)`를 가진다.
   - `포장 주문(TakeOut Order)`은 `주문 상품(Order Line Item)`을 가진다.
+
 
 - 행위
   - `포장 주문(TakeOut Order)`을 등록할 수 있다.
@@ -443,6 +451,54 @@ sequenceDiagram
     - `포장 주문(TakeOut Order)`이 완료되면 `완료(Completed)` 상태가 된다.
   - `포장 주문(TakeOut Order)`을 조회할 수 있다.
 
+
+- 시퀀스 다이어그램
+  
+  ```mermaid
+  sequenceDiagram
+      actor User as 사용자
+      participant TakeOutOrderService as 포장 주문 서비스
+      participant TakeOutOrder as 포장 주문
+      participant Menu as 메뉴
+      participant MenuRepository as 메뉴 리포지토리
+      participant OrderRepository as 주문 리포지토리
+      participant Policy as 정책
+  
+      User->>TakeOutOrderService: 포장 주문 생성 요청
+      TakeOutOrderService->>MenuRepository: 메뉴 찾기
+      MenuRepository-->>TakeOutOrderService: 메뉴
+      TakeOutOrderService->>Policy: 주문 등록 정책 확인
+      Policy-->>TakeOutOrderService: 정책 확인 완료
+      TakeOutOrderService->>TakeOutOrder: 포장 주문 생성(메뉴, 포장주문)
+      TakeOutOrderService->>OrderRepository: 포장 주문 저장
+      OrderRepository-->>TakeOutOrderService: 포장 주문
+      TakeOutOrderService-->>User: 주문 등록됨 (접수 대기 중)
+  
+      User->>TakeOutOrderService: 포장 주문 접수 요청
+      TakeOutOrderService->>Policy: 접수 가능 여부 확인
+      Policy-->>TakeOutOrderService: 정책 확인 완료
+      TakeOutOrderService->>TakeOutOrder: 주문 상태 변경(접수 완료)
+      TakeOutOrderService->>OrderRepository: 포장 주문 저장
+      OrderRepository-->>TakeOutOrderService: 포장 주문
+      TakeOutOrderService-->>User: 주문 접수됨
+  
+      User->>TakeOutOrderService: 포장 주문 서빙 요청
+      TakeOutOrderService->>Policy: 서빙 가능 여부 확인
+      Policy-->>TakeOutOrderService: 정책 확인 완료
+      TakeOutOrderService->>TakeOutOrder: 주문 상태 변경(서빙 완료)
+      TakeOutOrderService->>OrderRepository: 포장 주문 저장
+      OrderRepository-->>TakeOutOrderService: 포장 주문
+      TakeOutOrderService-->>User: 서빙 완료됨
+  
+      User->>TakeOutOrderService: 주문 완료 요청
+      TakeOutOrderService->>Policy: 주문 완료 가능 여부 확인
+      Policy-->>TakeOutOrderService: 정책 확인 완료
+      TakeOutOrderService->>TakeOutOrder: 주문 상태 변경(완료)
+      TakeOutOrderService->>OrderRepository: 포장 주문 저장
+      OrderRepository-->>TakeOutOrderService: 포장 주문
+      TakeOutOrderService-->>User: 주문 완료됨
+  ```
+
 ### 매장 내 주문(Eat-In Order) 컨텍스트
 
 #### 매장 내 주문(Eat-In Order)
@@ -453,6 +509,7 @@ sequenceDiagram
   - `매장 내 주문(Eat-In Order)`은 `주문 일시(Order Date Time)`를 가진다.
   - `매장 내 주문(Eat-In Order)`은 주문한 테이블인 `주문 테이블(Order Table)`을 가진다. 
   - `매장 내 주문(Eat-In Order)`은 `주문 상품(Order Line Item)`을 가진다.
+
 
 - 행위
   - `매장 내 주문(Eat-In Order)`을 등록할 수 있다.
@@ -483,6 +540,7 @@ sequenceDiagram
     - `손님 수(Number Of Guests)`는 0 이상이어야 한다.
   - `주문 테이블(Order Table)`은 해당 테이블의 `사용 여부(Occupied)`를 가진다.
 
+
 - 행위
   - `주문 테이블(Order Table)`은 등록할 수 있다.
     - `주문 테이블(Order Table)`은 등록되면 `비어있는 테이블(Unoccupied Table)`이 된다.
@@ -494,3 +552,56 @@ sequenceDiagram
     - `주문 테이블(Order Table)`의 모든 `매장 내 주문(Eat-In Order)`이 `완료(Completed)` 상태인 경우에만 `주문 테이블 비움(Clear Order Table)` 처리를 할 수 있다.
     - `주문 테이블(Order Table)`이 `주문 테이블 비움(Clear Order Table)` 처리를 하면 `빈 테이블(Unoccupied Table)`이 된다.
   - `주문 테이블(Order Table)`을 조회할 수 있다.
+
+
+- 시퀀스 다이어그램
+  ```mermaid
+    sequenceDiagram
+        actor User as 사용자
+        participant EatInOrderService as 매장 내 주문 서비스
+        participant EatInOrder as 매장 내 주문
+        participant Menu as 메뉴
+        participant MenuRepository as 메뉴 리포지토리
+        participant OrderRepository as 주문 리포지토리
+        participant OrderTable as 주문 테이블
+        participant Policy as 정책
+    
+        User->>OrderTable: 주문 테이블 사용 중 처리
+        OrderTable-->>User: 테이블 사용 중 처리 완료
+    
+        User->>EatInOrderService: 매장 내 주문 생성 요청
+        EatInOrderService->>MenuRepository: 메뉴 찾기
+        MenuRepository-->>EatInOrderService: 메뉴
+        EatInOrderService->>Policy: 주문 등록 정책 확인
+        Policy-->>EatInOrderService: 정책 확인 완료
+        EatInOrderService->>EatInOrder: 매장 내 주문 생성(메뉴, 매장 내 주문)
+        EatInOrderService->>OrderRepository: 매장 내 주문 저장
+        OrderRepository-->>EatInOrderService: 매장 내 주문
+        EatInOrderService-->>User: 주문 등록됨 (접수 대기 중)
+    
+        User->>EatInOrderService: 매장 내 주문 접수 요청
+        EatInOrderService->>Policy: 접수 가능 여부 확인
+        Policy-->>EatInOrderService: 정책 확인 완료
+        EatInOrderService->>EatInOrder: 주문 상태 변경(접수 완료)
+        EatInOrderService->>OrderRepository: 매장 내 주문 저장
+        OrderRepository-->>EatInOrderService: 매장 내 주문
+        EatInOrderService-->>User: 주문 접수됨
+    
+        User->>EatInOrderService: 매장 내 주문 서빙 요청
+        EatInOrderService->>Policy: 서빙 가능 여부 확인
+        Policy-->>EatInOrderService: 정책 확인 완료
+        EatInOrderService->>EatInOrder: 주문 상태 변경(서빙 완료)
+        EatInOrderService->>OrderRepository: 매장 내 주문 저장
+        OrderRepository-->>EatInOrderService: 매장 내 주문
+        EatInOrderService-->>User: 서빙 완료됨
+    
+        User->>EatInOrderService: 주문 완료 요청
+        EatInOrderService->>Policy: 주문 완료 가능 여부 확인
+        Policy-->>EatInOrderService: 정책 확인 완료
+        EatInOrderService->>EatInOrder: 주문 상태 변경(완료)
+        EatInOrderService->>OrderRepository: 매장 내 주문 저장
+        OrderRepository-->>EatInOrderService: 매장 내 주문
+        EatInOrderService->>OrderTable: 주문 테이블 비움
+        OrderTable-->>EatInOrderService: 주문 테이블 비움 완료
+        EatInOrderService-->>User: 주문 완료됨
+    ```
