@@ -271,7 +271,7 @@ sequenceDiagram
     - `메뉴 이름(Menu Name)`은 비어있을 수 없다.
     - `메뉴 이름(Menu Name)`은 `비속어(Profanity)`를 포함할 수 없다.
   - `메뉴(Menu)`는 메뉴의 가격인 `메뉴 가격(Menu Price)`을 가진다.
-    - `메뉴 가격(Menu Price)`은 0 이상의 값을 가져야 한다.
+    - `메뉴 가격(Menu Price)`은 0원 이상의 값을 가져야 한다.
     - `메뉴 가격(Menu Price)`은 `메뉴 상품(Menu Product)`들의 가격을 합친 값 이하이어야 한다.
   - `메뉴(Menu)`는 `노출 여부(displayed)`를 가진다.
   - `메뉴(Menu)`는 복수 개의 메뉴를 모아 놓을 수 있는 `메뉴그룹(Menu Group)`을 반드시 가진다. 
@@ -280,7 +280,7 @@ sequenceDiagram
     - `메뉴 상품(Menu Product)`은 `상품 식별자(Product Id)`를 가진다.
     - `메뉴 상품(Menu Product)`은 `상품 가격(Product Price)`을 가진다.
     - `메뉴 상품(Menu Product)`은 `메뉴 상품 수량(Quantity)`을 가진다.
-      - `메뉴 상품 수량(Quantity)`은 0 이상의 값을 가져야 한다.
+      - `메뉴 상품 수량(Quantity)`은 0개 이상의 값을 가져야 한다.
 
       
 - 행위 
@@ -337,7 +337,7 @@ sequenceDiagram
 - 행위
   - `배달 주문(Delivery Order)`을 등록할 수 있다.
     - `주문상품(Order Line Item)`의 `메뉴(Menu)`가 `노출된 메뉴(Displayed Menu)`일 경우에만 등록할 수 있다.
-    - `주문상품(Order Line Item)`의 `메뉴(Menu)`의 `메뉴가격(Price)`이 요청한 주문상품가격과 같아야 등록할 수 있다.
+    - `주문상품(Order Line Item)`의 주문 상품 가격은 `메뉴(Menu)`의 `메뉴 가격(Price)` 과 같아야 등록할 수 있다.
     - `배달 주문(Delivery Order)`이 등록되면 `접수 대기 중 주문(Waiting Order)`이 된다.
   - `배달 주문(Delivery Order)`을 접수할 수 있다.
     - `배달 주문(Delivery Order)`의 주문 상태가 `접수 대기 중(Waiting)`일 경우에만 접수할 수 있다.
