@@ -15,6 +15,8 @@ import kitchenpos.infra.PurgomalumClient;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -33,14 +35,14 @@ public class Fixtures {
 	}
 
 	public static Menu menu(final long price, final boolean displayed, final MenuProduct... menuProducts) {
-		final Menu menu = new Menu();
-		menu.setId(UUID.randomUUID());
-		menu.setName("후라이드+후라이드");
-		menu.setPrice(BigDecimal.valueOf(price));
-		menu.setMenuGroup(menuGroup());
-		menu.setDisplayed(displayed);
-		menu.setMenuProducts(Arrays.asList(menuProducts));
-		return menu;
+		return new Menu(
+			"후라이드+후라이드",
+			BigDecimal.valueOf(price),
+			menuGroup(),
+			List.of(menuProducts),
+			displayed,
+			purgomalumClient
+		);
 	}
 
 	public static MenuGroup menuGroup() {
@@ -52,19 +54,11 @@ public class Fixtures {
 	}
 
 	public static MenuProduct menuProduct() {
-		final MenuProduct menuProduct = new MenuProduct();
-		menuProduct.setSeq(new Random().nextLong());
-		menuProduct.setProduct(product());
-		menuProduct.setQuantity(2L);
-		return menuProduct;
+		return new MenuProduct(new Random().nextLong(), product(), 2L);
 	}
 
 	public static MenuProduct menuProduct(final Product product, final long quantity) {
-		final MenuProduct menuProduct = new MenuProduct();
-		menuProduct.setSeq(new Random().nextLong());
-		menuProduct.setProduct(product);
-		menuProduct.setQuantity(quantity);
-		return menuProduct;
+		return new MenuProduct(new Random().nextLong(), product, quantity);
 	}
 
 	public static Order order(final OrderStatus status, final String deliveryAddress) {

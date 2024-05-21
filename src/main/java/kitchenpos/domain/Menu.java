@@ -1,112 +1,111 @@
 package kitchenpos.domain;
 
-import jakarta.persistence.CascadeType;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
+import kitchenpos.infra.PurgomalumClient;
 
 @Table(name = "menu")
 @Entity
 public class Menu {
-    @Column(name = "id", columnDefinition = "binary(16)")
-    @Id
-    private UUID id;
+	@Column(name = "id", columnDefinition = "binary(16)")
+	@Id
+	private UUID id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+	@Embedded
+	private MenuName name;
 
-    @Column(name = "price", nullable = false)
-    private BigDecimal price;
+	@Embedded
+	private MenuPrice price;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "menu_group_id",
-        columnDefinition = "binary(16)",
-        foreignKey = @ForeignKey(name = "fk_menu_to_menu_group")
-    )
-    private MenuGroup menuGroup;
+	@ManyToOne(optional = false)
+	@JoinColumn(
+		name = "menu_group_id",
+		columnDefinition = "binary(16)",
+		foreignKey = @ForeignKey(name = "fk_menu_to_menu_group")
+	)
+	private MenuGroup menuGroup;
 
-    @Column(name = "displayed", nullable = false)
-    private boolean displayed;
+	@Column(name = "displayed", nullable = false)
+	private boolean displayed;
 
-    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(
-        name = "menu_id",
-        nullable = false,
-        columnDefinition = "binary(16)",
-        foreignKey = @ForeignKey(name = "fk_menu_product_to_menu")
-    )
-    private List<MenuProduct> menuProducts;
+	@Embedded
+	private MenuProducts menuProducts;
 
-    @Transient
-    private UUID menuGroupId;
+	@Transient
+	private UUID menuGroupId;
 
-    public Menu() {
-    }
+	public Menu() {
+	}
 
-    public UUID getId() {
-        return id;
-    }
+	public Menu(String name, BigDecimal price, MenuGroup menuGroup, List<MenuProduct> menuProducts, boolean displayed,
+		PurgomalumClient purgomalumClient) {
+		this(UUID.randomUUID(), name, price, menuGroup, menuProducts, displayed, purgomalumClient);
+	}
 
-    public void setId(final UUID id) {
-        this.id = id;
-    }
+	public Menu(UUID id, String name, BigDecimal price, MenuGroup menuGroup, List<MenuProduct> menuProducts,
+		boolean displayed, PurgomalumClient purgomalumClient) {
+		this.id = id;
+		this.name = new MenuName(name, purgomalumClient);
+		this.price = MenuPrice.of(price);
+		this.menuGroup = menuGroup;
+		this.menuGroupId = menuGroup.getId();
+		this.menuProducts = new MenuProducts(menuProducts, this.price);
+		this.displayed = displayed;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public UUID getId() {
+		return id;
+	}
 
-    public void setName(final String name) {
-        this.name = name;
-    }
+	public void setId(final UUID id) {
+		this.id = id;
+	}
 
-    public BigDecimal getPrice() {
-        return price;
-    }
+	public String getName() {
+		return name.getValue();
+	}
 
-    public void setPrice(final BigDecimal price) {
-        this.price = price;
-    }
+	public BigDecimal getPrice() {
+		return price.getValue();
+	}
 
-    public MenuGroup getMenuGroup() {
-        return menuGroup;
-    }
+	public MenuGroup getMenuGroup() {
+		return menuGroup;
+	}
 
-    public void setMenuGroup(final MenuGroup menuGroup) {
-        this.menuGroup = menuGroup;
-    }
+	public boolean isDisplayed() {
+		return displayed;
+	}
 
-    public boolean isDisplayed() {
-        return displayed;
-    }
+	public List<MenuProduct> getMenuProducts() {
+		return menuProducts.getValue();
+	}
 
-    public void setDisplayed(final boolean displayed) {
-        this.displayed = displayed;
-    }
+	public UUID getMenuGroupId() {
+		return menuGroupId;
+	}
 
-    public List<MenuProduct> getMenuProducts() {
-        return menuProducts;
-    }
+	public void display(boolean display) {
+		if (display) {
+			menuProducts.validatePrice(price);
+		}
 
-    public void setMenuProducts(final List<MenuProduct> menuProducts) {
-        this.menuProducts = menuProducts;
-    }
+		this.displayed = display;
+	}
 
-    public UUID getMenuGroupId() {
-        return menuGroupId;
-    }
-
-    public void setMenuGroupId(final UUID menuGroupId) {
-        this.menuGroupId = menuGroupId;
-    }
+	public void changePrice(BigDecimal newPrice) {
+		this.menuProducts.validatePrice(MenuPrice.of(newPrice));
+		this.price = MenuPrice.of(newPrice);
+	}
 }
