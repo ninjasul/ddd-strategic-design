@@ -48,13 +48,25 @@ public class Menu {
 	public Menu() {
 	}
 
-	public Menu(String name, BigDecimal price, MenuGroup menuGroup, List<MenuProduct> menuProducts, boolean displayed,
+	public Menu(
+		String name,
+		BigDecimal price,
+		MenuGroup menuGroup,
+		List<MenuProduct> menuProducts,
+		boolean displayed,
 		PurgomalumClient purgomalumClient) {
 		this(UUID.randomUUID(), name, price, menuGroup, menuProducts, displayed, purgomalumClient);
 	}
 
-	public Menu(UUID id, String name, BigDecimal price, MenuGroup menuGroup, List<MenuProduct> menuProducts,
-		boolean displayed, PurgomalumClient purgomalumClient) {
+	public Menu(
+		UUID id,
+		String name,
+		BigDecimal price,
+		MenuGroup menuGroup,
+		List<MenuProduct> menuProducts,
+		boolean displayed,
+		PurgomalumClient purgomalumClient
+	) {
 		this.id = id;
 		this.name = new MenuName(name, purgomalumClient);
 		this.price = MenuPrice.of(price);

@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -23,6 +25,9 @@ import kitchenpos.ui.dto.MenuCreationRequest;
 
 @Service
 public class MenuService {
+	private static final String PRODUCT_NOT_FOUND = "상품을 찾을 수 없습니다";
+	private static final String MENU_GROUP_NOT_FOUND_ERROR = "메뉴 그룹을 찾을 수 없습니다.";
+
 	private final MenuRepository menuRepository;
 	private final MenuGroupRepository menuGroupRepository;
 	private final ProductRepository productRepository;
@@ -43,12 +48,12 @@ public class MenuService {
 	@Transactional
 	public Menu create(final MenuCreationRequest request) {
 		final MenuGroup menuGroup = menuGroupRepository.findById(request.menuGroupId())
-			.orElseThrow(() -> new NoSuchElementException("메뉴 그룹을 찾을 수 없습니다."));
+			.orElseThrow(() -> new NoSuchElementException(MENU_GROUP_NOT_FOUND_ERROR));
 
 		final Map<UUID, Product> products =
 			productRepository.findAllByIdIn(new ArrayList<>(request.menuProductQuantities().keySet()))
 				.stream()
-				.collect(Collectors.toMap(Product::getId, product -> product));
+				.collect(Collectors.toMap(Product::getId, Function.identity()));
 
 		Menu menu = new Menu(
 			request.name(),
@@ -62,18 +67,19 @@ public class MenuService {
 		return menuRepository.save(menu);
 	}
 
-	private List<MenuProduct> buildMenuProducts(MenuCreationRequest request, Map<UUID, Product> productMap) {
+	private List<MenuProduct> buildMenuProducts(MenuCreationRequest request, Map<UUID, Product> products) {
 		return request.menuProductQuantities()
 			.entrySet()
 			.stream()
-			.map(entry -> {
-				Product product = productMap.get(entry.getKey());
-				if (product == null) {
-					throw new NoSuchElementException("상품을 찾을 수 없습니다.");
-				}
-				return new MenuProduct(product, entry.getValue());
-			})
+			.map(entry -> buildMenuProduct(entry, products))
 			.toList();
+	}
+
+	private MenuProduct buildMenuProduct(Map.Entry<UUID, Long> productQuantityEntry, Map<UUID, Product> products) {
+		UUID productId = productQuantityEntry.getKey();
+		Product product = Optional.ofNullable(products.get(productId))
+			.orElseThrow(() -> new NoSuchElementException(String.format("%s: %s", PRODUCT_NOT_FOUND, productId)));
+		return new MenuProduct(product, productQuantityEntry.getValue());
 	}
 
 	@Transactional
