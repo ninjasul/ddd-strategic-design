@@ -8,15 +8,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-class MenuGroupNameTest {
+class NonEmptyNameTest {
 	@ParameterizedTest
 	@NullAndEmptySource
 	@DisplayName("메뉴 그룹 이름이 null이거나 비어있으면 메뉴 그룹 이름 객체를 생성할 수 없다.")
 	void menuGroupNameOfNullOrEmpty(String invalidName) {
 		// When & Then
 		assertThatExceptionOfType(IllegalArgumentException.class)
-			.isThrownBy(() -> new MenuGroupName(invalidName))
-			.withMessage(MenuGroupName.NULL_OR_EMPTY_NAME_ERROR);
+			.isThrownBy(() -> new NonEmptyName(invalidName))
+			.withMessage(NonEmptyName.NULL_OR_EMPTY_NAME_ERROR);
 	}
 
 	@Test
@@ -26,9 +26,9 @@ class MenuGroupNameTest {
 		String validName = "유효한 메뉴 그룹 이름";
 
 		// When
-		MenuGroupName menuGroupName = new MenuGroupName(validName);
+		NonEmptyName nonEmptyName = new NonEmptyName(validName);
 
 		// Then
-		assertEquals(validName, menuGroupName.getValue());
+		assertEquals(validName, nonEmptyName.getValue());
 	}
 }

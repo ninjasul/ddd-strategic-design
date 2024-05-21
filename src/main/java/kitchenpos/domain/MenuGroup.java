@@ -16,19 +16,19 @@ public class MenuGroup {
 	private UUID id;
 
 	@Embedded
-	private MenuGroupName name;
+	private NonEmptyName name;
 
 	protected MenuGroup() {
 	}
 
 	public MenuGroup(String name) {
 		this.id = UUID.randomUUID();
-		this.name = new MenuGroupName(name);
+		this.name = new NonEmptyName(name);
 	}
 
 	public MenuGroup(UUID id, String name) {
 		this.id = id;
-		this.name = new MenuGroupName(name);
+		this.name = new NonEmptyName(name);
 	}
 
 	public UUID getId() {

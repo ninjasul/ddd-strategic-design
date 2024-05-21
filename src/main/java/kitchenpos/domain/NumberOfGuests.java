@@ -1,23 +1,22 @@
 package kitchenpos.domain;
 
-import java.math.BigDecimal;
 import java.util.Objects;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 
 @Embeddable
-public class Quantity {
-	public static final String INVALID_VALUE_ERROR = "값은 0보다 작을 수 없습니다.";
+public class NumberOfGuests {
 
-	@Column(name = "quantity", nullable = false)
-	private long value;
+	public static final String INVALID_VALUE_ERROR = "손님의 수는 0보다 작을 수 없습니다.";
 
+	@Column(name = "number_of_guests", nullable = false)
+	private int value;
 
-	protected Quantity() {
+	protected NumberOfGuests() {
 	}
 
-	protected Quantity(long value) {
+	protected NumberOfGuests(int value) {
 		if (value < 0) {
 			throw new IllegalArgumentException(INVALID_VALUE_ERROR);
 		}
@@ -25,12 +24,8 @@ public class Quantity {
 		this.value = value;
 	}
 
-	public long getValue() {
+	public int getValue() {
 		return value;
-	}
-
-	public BigDecimal getBigDecimalValue() {
-		return BigDecimal.valueOf(value);
 	}
 
 	@Override
@@ -39,8 +34,8 @@ public class Quantity {
 			return true;
 		if (object == null || getClass() != object.getClass())
 			return false;
-		Quantity quantity = (Quantity)object;
-		return value == quantity.value;
+		NumberOfGuests that = (NumberOfGuests)object;
+		return value == that.value;
 	}
 
 	@Override

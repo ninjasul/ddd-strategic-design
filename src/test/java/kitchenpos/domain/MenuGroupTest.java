@@ -9,7 +9,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import kitchenpos.application.FakePurgomalumClient;
 import kitchenpos.infra.PurgomalumClient;
@@ -27,7 +26,7 @@ class MenuGroupTest {
 		// When & Then
 		assertThatExceptionOfType(IllegalArgumentException.class)
 			.isThrownBy(() -> new MenuGroup(id, invalidName))
-			.withMessage(MenuGroupName.NULL_OR_EMPTY_NAME_ERROR);
+			.withMessage(NonEmptyName.NULL_OR_EMPTY_NAME_ERROR);
 	}
 
 	@Test

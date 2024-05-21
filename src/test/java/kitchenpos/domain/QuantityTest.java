@@ -17,7 +17,7 @@ class QuantityTest {
 		// When & Then
 		assertThatExceptionOfType(IllegalArgumentException.class)
 			.isThrownBy(() -> new Quantity(invalidQuantity))
-			.withMessage(Quantity.INVALID_QUANTITY_ERROR);
+			.withMessage(Quantity.INVALID_VALUE_ERROR);
 	}
 
 	@Test

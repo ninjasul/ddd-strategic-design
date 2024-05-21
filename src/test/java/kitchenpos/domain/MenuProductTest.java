@@ -46,7 +46,7 @@ class MenuProductTest {
 		// When & Then
 		assertThatExceptionOfType(IllegalArgumentException.class)
 			.isThrownBy(() -> new MenuProduct(seqValue, product, invalidQuantity))
-			.withMessage(Quantity.INVALID_QUANTITY_ERROR);
+			.withMessage(Quantity.INVALID_VALUE_ERROR);
 	}
 
 	private Product createProduct(String name, long price) {
