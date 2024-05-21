@@ -2,6 +2,7 @@ package kitchenpos.domain;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -44,8 +45,8 @@ public class Order {
     )
     private List<OrderLineItem> orderLineItems;
 
-    @Column(name = "delivery_address")
-    private String deliveryAddress;
+    @Embedded
+    private DeliveryAddress deliveryAddress;
 
     @ManyToOne
     @JoinColumn(
@@ -102,11 +103,11 @@ public class Order {
     }
 
     public String getDeliveryAddress() {
-        return deliveryAddress;
+        return deliveryAddress.getValue();
     }
 
     public void setDeliveryAddress(final String deliveryAddress) {
-        this.deliveryAddress = deliveryAddress;
+        this.deliveryAddress = new DeliveryAddress(deliveryAddress);
     }
 
     public OrderTable getOrderTable() {

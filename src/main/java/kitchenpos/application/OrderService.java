@@ -86,11 +86,7 @@ public class OrderService {
         order.setOrderDateTime(LocalDateTime.now());
         order.setOrderLineItems(orderLineItems);
         if (type == OrderType.DELIVERY) {
-            final String deliveryAddress = request.getDeliveryAddress();
-            if (Objects.isNull(deliveryAddress) || deliveryAddress.isEmpty()) {
-                throw new IllegalArgumentException();
-            }
-            order.setDeliveryAddress(deliveryAddress);
+            order.setDeliveryAddress(request.getDeliveryAddress());
         }
         if (type == OrderType.EAT_IN) {
             final OrderTable orderTable = orderTableRepository.findById(request.getOrderTableId())

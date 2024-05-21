@@ -156,16 +156,16 @@ class OrderServiceTest {
             .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @DisplayName("배달 주소가 올바르지 않으면 배달 주문을 등록할 수 없다.")
+    @DisplayName("배달 주소가 올바르지 않으면 배달 주문 객체를 생성할 수 없다.")
     @NullAndEmptySource
     @ParameterizedTest
     void create(final String deliveryAddress) {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final Order expected = createOrderRequest(
+
+        assertThatThrownBy(() -> createOrderRequest(
             OrderType.DELIVERY, deliveryAddress, createOrderLineItemRequest(menuId, 19_000L, 3L)
-        );
-        assertThatThrownBy(() -> orderService.create(expected))
-            .isInstanceOf(IllegalArgumentException.class);
+        ))
+        .isInstanceOf(IllegalArgumentException.class);
     }
 
     @DisplayName("빈 테이블에는 매장 주문을 등록할 수 없다.")
