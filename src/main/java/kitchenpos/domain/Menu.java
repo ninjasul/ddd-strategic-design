@@ -96,6 +96,12 @@ public class Menu {
 		return menuGroupId;
 	}
 
+	public void displayBasedOnProductsPrice() {
+		if (price.getValue().compareTo(menuProducts.getPrice()) > 0) {
+			display(false);
+		}
+	}
+
 	public void display(boolean display) {
 		if (display) {
 			menuProducts.validatePrice(price);

@@ -1,12 +1,15 @@
 package kitchenpos.application;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import org.flywaydb.core.internal.util.CollectionsUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import kitchenpos.domain.Menu;
 import kitchenpos.domain.MenuProduct;
@@ -14,6 +17,7 @@ import kitchenpos.domain.MenuRepository;
 import kitchenpos.domain.Product;
 import kitchenpos.domain.ProductRepository;
 import kitchenpos.infra.PurgomalumClient;
+import kitchenpos.ui.dto.ProductCreationRequest;
 
 @Service
 public class ProductService {
@@ -32,11 +36,11 @@ public class ProductService {
 	}
 
 	@Transactional
-	public Product create(final Product request) {
+	public Product create(final ProductCreationRequest request) {
 		final Product product = new Product(
 			UUID.randomUUID(),
-			request.getName(),
-			request.getPrice(),
+			request.name(),
+			request.price(),
 			purgomalumClient
 		);
 
@@ -44,25 +48,16 @@ public class ProductService {
 	}
 
 	@Transactional
-	public Product changePrice(final UUID productId, final Product request) {
+	public Product changePrice(final UUID productId, final BigDecimal price) {
 		final Product product = productRepository.findById(productId)
 			.orElseThrow(NoSuchElementException::new);
 
-		product.changePrice(request.getPrice());
+		product.changePrice(price);
 
 		final List<Menu> menus = menuRepository.findAllByProductId(productId);
-		for (final Menu menu : menus) {
-			BigDecimal sum = BigDecimal.ZERO;
-			for (final MenuProduct menuProduct : menu.getMenuProducts()) {
-				sum = sum.add(
-					menuProduct.getProduct()
-						.getPrice()
-						.multiply(BigDecimal.valueOf(menuProduct.getQuantity()))
-				);
-			}
-			if (menu.getPrice().compareTo(sum) > 0) {
-				menu.display(false);
-			}
+
+		if (!CollectionUtils.isEmpty(menus)) {
+			menus.forEach(Menu::displayBasedOnProductsPrice);
 		}
 
 		return product;
