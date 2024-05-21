@@ -1,6 +1,10 @@
 package kitchenpos.domain;
 
+import java.math.BigDecimal;
+import java.util.UUID;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -11,62 +15,63 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
 
-import java.util.UUID;
-
 @Table(name = "menu_product")
 @Entity
 public class MenuProduct {
-    @Column(name = "seq")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
-    private Long seq;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "seq")
 
-    @ManyToOne(optional = false)
-    @JoinColumn(
-        name = "product_id",
-        columnDefinition = "binary(16)",
-        foreignKey = @ForeignKey(name = "fk_menu_product_to_product")
-    )
-    private Product product;
+	private Long seq;
 
-    @Column(name = "quantity", nullable = false)
-    private long quantity;
+	@ManyToOne(optional = false)
+	@JoinColumn(
+		name = "product_id",
+		columnDefinition = "binary(16)",
+		foreignKey = @ForeignKey(name = "fk_menu_product_to_product")
+	)
+	private Product product;
 
-    @Transient
-    private UUID productId;
+	@Embedded
+	private Quantity quantity;
 
-    public MenuProduct() {
-    }
+	@Transient
+	private UUID productId;
 
-    public Long getSeq() {
-        return seq;
-    }
+	public MenuProduct() {
+	}
 
-    public void setSeq(final Long seq) {
-        this.seq = seq;
-    }
+	public MenuProduct(Long seq, Product product, long quantity) {
+		this.seq = seq;
+		this.productId = product.getId();
+		this.product = product;
+		this.quantity = new Quantity(quantity);
+	}
 
-    public Product getProduct() {
-        return product;
-    }
+	public MenuProduct(Product product, long quantity) {
+		this.productId = product.getId();
+		this.product = product;
+		this.quantity = new Quantity(quantity);
+	}
 
-    public void setProduct(final Product product) {
-        this.product = product;
-    }
+	public Long getSeq() {
+		return seq;
+	}
 
-    public long getQuantity() {
-        return quantity;
-    }
+	public Product getProduct() {
+		return product;
+	}
 
-    public void setQuantity(final long quantity) {
-        this.quantity = quantity;
-    }
+	public long getQuantity() {
+		return quantity.getValue();
+	}
 
-    public UUID getProductId() {
-        return productId;
-    }
+	public UUID getProductId() {
+		return productId;
+	}
 
-    public void setProductId(final UUID productId) {
-        this.productId = productId;
-    }
+	public BigDecimal getPrice() {
+		return product.getPrice().multiply(quantity.getBigDecimalValue());
+	}
+
 }
