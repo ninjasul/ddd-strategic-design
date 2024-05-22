@@ -1,13 +1,16 @@
 package kitchenpos.application;
 
-import kitchenpos.domain.MenuRepository;
-import kitchenpos.domain.Order;
-import kitchenpos.domain.OrderLineItem;
-import kitchenpos.domain.OrderRepository;
-import kitchenpos.domain.OrderStatus;
-import kitchenpos.domain.OrderTable;
-import kitchenpos.domain.OrderTableRepository;
-import kitchenpos.domain.OrderType;
+import static kitchenpos.Fixtures.*;
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,22 +22,17 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.UUID;
-
-import static kitchenpos.Fixtures.INVALID_ID;
-import static kitchenpos.Fixtures.menu;
-import static kitchenpos.Fixtures.menuProduct;
-import static kitchenpos.Fixtures.order;
-import static kitchenpos.Fixtures.orderTable;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import kitchenpos.domain.DeliveryOrder;
+import kitchenpos.domain.EatInOrder;
+import kitchenpos.domain.MenuRepository;
+import kitchenpos.domain.Order;
+import kitchenpos.domain.OrderLineItem;
+import kitchenpos.domain.OrderRepository;
+import kitchenpos.domain.OrderStatus;
+import kitchenpos.domain.OrderTable;
+import kitchenpos.domain.OrderTableRepository;
+import kitchenpos.domain.OrderType;
+import kitchenpos.domain.TakeoutOrder;
 
 class OrderServiceTest {
     private OrderRepository orderRepository;
@@ -56,10 +54,13 @@ class OrderServiceTest {
     @Test
     void createDeliveryOrder() {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final Order expected = createOrderRequest(
-            OrderType.DELIVERY, "서울시 송파구 위례성대로 2", createOrderLineItemRequest(menuId, 19_000L, 3L)
+        final DeliveryOrder expected = new DeliveryOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+            List.of(createOrderLineItemRequest(menuId, 19_000L, 3L)),
+            "서울시 송파구 위례성대로 2"
         );
-        final Order actual = orderService.create(expected);
+        final DeliveryOrder actual = (DeliveryOrder) orderService.create(expected);
         assertThat(actual).isNotNull();
         assertAll(
             () -> assertThat(actual.getId()).isNotNull(),
@@ -75,7 +76,11 @@ class OrderServiceTest {
     @Test
     void createTakeoutOrder() {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final Order expected = createOrderRequest(OrderType.TAKEOUT, createOrderLineItemRequest(menuId, 19_000L, 3L));
+        final TakeoutOrder expected = new TakeoutOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+            List.of(createOrderLineItemRequest(menuId, 19_000L, 3L))
+        );
         final Order actual = orderService.create(expected);
         assertThat(actual).isNotNull();
         assertAll(
@@ -91,9 +96,19 @@ class OrderServiceTest {
     @Test
     void createEatInOrder() {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final UUID orderTableId = orderTableRepository.save(orderTable(true, 4)).getId();
-        final Order expected = createOrderRequest(OrderType.EAT_IN, orderTableId, createOrderLineItemRequest(menuId, 19_000L, 3L));
-        final Order actual = orderService.create(expected);
+
+        final OrderTable orderTable = orderTable(4, true);
+        orderTableRepository.save(orderTable);
+
+        final EatInOrder expected = new EatInOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+			List.of(createOrderLineItemRequest(menuId, 19_000L, 3L)),
+            orderTable
+        );
+
+        final EatInOrder actual = (EatInOrder) orderService.create(expected);
+
         assertThat(actual).isNotNull();
         assertAll(
             () -> assertThat(actual.getId()).isNotNull(),
@@ -101,7 +116,7 @@ class OrderServiceTest {
             () -> assertThat(actual.getStatus()).isEqualTo(OrderStatus.WAITING),
             () -> assertThat(actual.getOrderDateTime()).isNotNull(),
             () -> assertThat(actual.getOrderLineItems()).hasSize(1),
-            () -> assertThat(actual.getOrderTable().getId()).isEqualTo(expected.getOrderTableId())
+            () -> assertThat(actual.getOrderTable().getId()).isEqualTo(expected.getOrderTable().getId())
         );
     }
 
@@ -110,25 +125,29 @@ class OrderServiceTest {
     @ParameterizedTest
     void create(final OrderType type) {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final Order expected = createOrderRequest(type, createOrderLineItemRequest(menuId, 19_000L, 3L));
+        final Order expected = order(type, menuId);
+
         assertThatThrownBy(() -> orderService.create(expected))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @DisplayName("메뉴가 없으면 등록할 수 없다.")
-    @MethodSource("orderLineItems")
     @ParameterizedTest
+    @NullAndEmptySource
+    @MethodSource("orderLineItems")
     void create(final List<OrderLineItem> orderLineItems) {
-        final Order expected = createOrderRequest(OrderType.TAKEOUT, orderLineItems);
+        final TakeoutOrder expected = new TakeoutOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+            orderLineItems
+        );
         assertThatThrownBy(() -> orderService.create(expected))
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     private static List<Arguments> orderLineItems() {
-        return Arrays.asList(
-            null,
-            Arguments.of(Collections.emptyList()),
-            Arguments.of(Arrays.asList(createOrderLineItemRequest(INVALID_ID, 19_000L, 3L)))
+        return List.of(
+            Arguments.of(List.of(createOrderLineItemRequest(INVALID_ID, 19_000L, 3L)))
         );
     }
 
@@ -137,10 +156,17 @@ class OrderServiceTest {
     @ParameterizedTest
     void createEatInOrder(final long quantity) {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final UUID orderTableId = orderTableRepository.save(orderTable(true, 4)).getId();
-        final Order expected = createOrderRequest(
-            OrderType.EAT_IN, orderTableId, createOrderLineItemRequest(menuId, 19_000L, quantity)
+
+        final OrderTable orderTable = orderTable(4, true);
+        orderTableRepository.save(orderTable);
+
+        final EatInOrder expected = new EatInOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+            List.of(createOrderLineItemRequest(menuId, 19_000L, quantity)),
+            orderTable
         );
+
         assertDoesNotThrow(() -> orderService.create(expected));
     }
 
@@ -149,8 +175,10 @@ class OrderServiceTest {
     @ParameterizedTest
     void createWithoutEatInOrder(final long quantity) {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final Order expected = createOrderRequest(
-            OrderType.TAKEOUT, createOrderLineItemRequest(menuId, 19_000L, quantity)
+        final TakeoutOrder expected = new TakeoutOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+            List.of(createOrderLineItemRequest(menuId, 19_000L, quantity))
         );
         assertThatThrownBy(() -> orderService.create(expected))
             .isInstanceOf(IllegalArgumentException.class);
@@ -162,19 +190,25 @@ class OrderServiceTest {
     void create(final String deliveryAddress) {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
 
-        assertThatThrownBy(() -> createOrderRequest(
-            OrderType.DELIVERY, deliveryAddress, createOrderLineItemRequest(menuId, 19_000L, 3L)
+        assertThatThrownBy(() -> new DeliveryOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+			List.of(createOrderLineItemRequest(menuId, 19_000L, 3L)),
+            deliveryAddress
         ))
-        .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @DisplayName("빈 테이블에는 매장 주문을 등록할 수 없다.")
     @Test
     void createEmptyTableEatInOrder() {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final UUID orderTableId = orderTableRepository.save(orderTable(false, 0)).getId();
-        final Order expected = createOrderRequest(
-            OrderType.EAT_IN, orderTableId, createOrderLineItemRequest(menuId, 19_000L, 3L)
+        final UUID orderTableId = orderTableRepository.save(orderTable(0, false)).getId();
+        final EatInOrder expected = new EatInOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+			List.of(createOrderLineItemRequest(menuId, 19_000L, 3L)),
+            orderTableRepository.findById(orderTableId).orElseThrow(NoSuchElementException::new)
         );
         assertThatThrownBy(() -> orderService.create(expected))
             .isInstanceOf(IllegalStateException.class);
@@ -184,7 +218,11 @@ class OrderServiceTest {
     @Test
     void createNotDisplayedMenuOrder() {
         final UUID menuId = menuRepository.save(menu(19_000L, false, menuProduct())).getId();
-        final Order expected = createOrderRequest(OrderType.TAKEOUT, createOrderLineItemRequest(menuId, 19_000L, 3L));
+        final TakeoutOrder expected = new TakeoutOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+			List.of(createOrderLineItemRequest(menuId, 19_000L, 3L))
+        );
         assertThatThrownBy(() -> orderService.create(expected))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -193,7 +231,11 @@ class OrderServiceTest {
     @Test
     void createNotMatchedMenuPriceOrder() {
         final UUID menuId = menuRepository.save(menu(19_000L, true, menuProduct())).getId();
-        final Order expected = createOrderRequest(OrderType.TAKEOUT, createOrderLineItemRequest(menuId, 16_000L, 3L));
+        final TakeoutOrder expected = new TakeoutOrder(
+            OrderStatus.WAITING,
+            LocalDateTime.now(),
+			List.of(createOrderLineItemRequest(menuId, 16_000L, 3L))
+        );
         assertThatThrownBy(() -> orderService.create(expected))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -201,7 +243,7 @@ class OrderServiceTest {
     @DisplayName("주문을 접수한다.")
     @Test
     void accept() {
-        final UUID orderId = orderRepository.save(order(OrderStatus.WAITING, orderTable(true, 4))).getId();
+        final UUID orderId = orderRepository.save(eatInOrder(OrderStatus.WAITING, orderTable(4, true))).getId();
         final Order actual = orderService.accept(orderId);
         assertThat(actual.getStatus()).isEqualTo(OrderStatus.ACCEPTED);
     }
@@ -210,7 +252,7 @@ class OrderServiceTest {
     @EnumSource(value = OrderStatus.class, names = "WAITING", mode = EnumSource.Mode.EXCLUDE)
     @ParameterizedTest
     void accept(final OrderStatus status) {
-        final UUID orderId = orderRepository.save(order(status, orderTable(true, 4))).getId();
+        final UUID orderId = orderRepository.save(eatInOrder(status, orderTable(4, true))).getId();
         assertThatThrownBy(() -> orderService.accept(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -218,7 +260,7 @@ class OrderServiceTest {
     @DisplayName("배달 주문을 접수되면 배달 대행사를 호출한다.")
     @Test
     void acceptDeliveryOrder() {
-        final UUID orderId = orderRepository.save(order(OrderStatus.WAITING, "서울시 송파구 위례성대로 2")).getId();
+        final UUID orderId = orderRepository.save(deliveryOrder(OrderStatus.WAITING, "서울시 송파구 위례성대로 2")).getId();
         final Order actual = orderService.accept(orderId);
         assertAll(
             () -> assertThat(actual.getStatus()).isEqualTo(OrderStatus.ACCEPTED),
@@ -230,7 +272,7 @@ class OrderServiceTest {
     @DisplayName("주문을 서빙한다.")
     @Test
     void serve() {
-        final UUID orderId = orderRepository.save(order(OrderStatus.ACCEPTED)).getId();
+        final UUID orderId = orderRepository.save(takeoutOrder(OrderStatus.ACCEPTED)).getId();
         final Order actual = orderService.serve(orderId);
         assertThat(actual.getStatus()).isEqualTo(OrderStatus.SERVED);
     }
@@ -239,7 +281,7 @@ class OrderServiceTest {
     @EnumSource(value = OrderStatus.class, names = "ACCEPTED", mode = EnumSource.Mode.EXCLUDE)
     @ParameterizedTest
     void serve(final OrderStatus status) {
-        final UUID orderId = orderRepository.save(order(status)).getId();
+        final UUID orderId = orderRepository.save(takeoutOrder(status)).getId();
         assertThatThrownBy(() -> orderService.serve(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -247,7 +289,7 @@ class OrderServiceTest {
     @DisplayName("주문을 배달한다.")
     @Test
     void startDelivery() {
-        final UUID orderId = orderRepository.save(order(OrderStatus.SERVED, "서울시 송파구 위례성대로 2")).getId();
+        final UUID orderId = orderRepository.save(deliveryOrder(OrderStatus.SERVED, "서울시 송파구 위례성대로 2")).getId();
         final Order actual = orderService.startDelivery(orderId);
         assertThat(actual.getStatus()).isEqualTo(OrderStatus.DELIVERING);
     }
@@ -255,7 +297,7 @@ class OrderServiceTest {
     @DisplayName("배달 주문만 배달할 수 있다.")
     @Test
     void startDeliveryWithoutDeliveryOrder() {
-        final UUID orderId = orderRepository.save(order(OrderStatus.SERVED)).getId();
+        final UUID orderId = orderRepository.save(takeoutOrder(OrderStatus.SERVED)).getId();
         assertThatThrownBy(() -> orderService.startDelivery(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -264,7 +306,7 @@ class OrderServiceTest {
     @EnumSource(value = OrderStatus.class, names = "SERVED", mode = EnumSource.Mode.EXCLUDE)
     @ParameterizedTest
     void startDelivery(final OrderStatus status) {
-        final UUID orderId = orderRepository.save(order(status, "서울시 송파구 위례성대로 2")).getId();
+        final UUID orderId = orderRepository.save(deliveryOrder(status, "서울시 송파구 위례성대로 2")).getId();
         assertThatThrownBy(() -> orderService.startDelivery(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -272,7 +314,7 @@ class OrderServiceTest {
     @DisplayName("주문을 배달 완료한다.")
     @Test
     void completeDelivery() {
-        final UUID orderId = orderRepository.save(order(OrderStatus.DELIVERING, "서울시 송파구 위례성대로 2")).getId();
+        final UUID orderId = orderRepository.save(deliveryOrder(OrderStatus.DELIVERING, "서울시 송파구 위례성대로 2")).getId();
         final Order actual = orderService.completeDelivery(orderId);
         assertThat(actual.getStatus()).isEqualTo(OrderStatus.DELIVERED);
     }
@@ -281,7 +323,7 @@ class OrderServiceTest {
     @EnumSource(value = OrderStatus.class, names = "DELIVERING", mode = EnumSource.Mode.EXCLUDE)
     @ParameterizedTest
     void completeDelivery(final OrderStatus status) {
-        final UUID orderId = orderRepository.save(order(status, "서울시 송파구 위례성대로 2")).getId();
+        final UUID orderId = orderRepository.save(deliveryOrder(status, "서울시 송파구 위례성대로 2")).getId();
         assertThatThrownBy(() -> orderService.completeDelivery(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -289,7 +331,7 @@ class OrderServiceTest {
     @DisplayName("주문을 완료한다.")
     @Test
     void complete() {
-        final Order expected = orderRepository.save(order(OrderStatus.DELIVERED, "서울시 송파구 위례성대로 2"));
+        final Order expected = orderRepository.save(deliveryOrder(OrderStatus.DELIVERED, "서울시 송파구 위례성대로 2"));
         final Order actual = orderService.complete(expected.getId());
         assertThat(actual.getStatus()).isEqualTo(OrderStatus.COMPLETED);
     }
@@ -298,7 +340,7 @@ class OrderServiceTest {
     @EnumSource(value = OrderStatus.class, names = "DELIVERED", mode = EnumSource.Mode.EXCLUDE)
     @ParameterizedTest
     void completeDeliveryOrder(final OrderStatus status) {
-        final UUID orderId = orderRepository.save(order(status, "서울시 송파구 위례성대로 2")).getId();
+        final UUID orderId = orderRepository.save(deliveryOrder(status, "서울시 송파구 위례성대로 2")).getId();
         assertThatThrownBy(() -> orderService.complete(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -307,7 +349,7 @@ class OrderServiceTest {
     @EnumSource(value = OrderStatus.class, names = "SERVED", mode = EnumSource.Mode.EXCLUDE)
     @ParameterizedTest
     void completeTakeoutAndEatInOrder(final OrderStatus status) {
-        final UUID orderId = orderRepository.save(order(status)).getId();
+        final UUID orderId = orderRepository.save(takeoutOrder(status)).getId();
         assertThatThrownBy(() -> orderService.complete(orderId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -315,8 +357,10 @@ class OrderServiceTest {
     @DisplayName("주문 테이블의 모든 매장 주문이 완료되면 빈 테이블로 설정한다.")
     @Test
     void completeEatInOrder() {
-        final OrderTable orderTable = orderTableRepository.save(orderTable(true, 4));
-        final Order expected = orderRepository.save(order(OrderStatus.SERVED, orderTable));
+        final OrderTable orderTable = orderTableRepository.save(orderTable(4, true));
+        final EatInOrder expected = eatInOrder(OrderStatus.SERVED, orderTable);
+        orderRepository.save(expected);
+
         final Order actual = orderService.complete(expected.getId());
         assertAll(
             () -> assertThat(actual.getStatus()).isEqualTo(OrderStatus.COMPLETED),
@@ -328,9 +372,11 @@ class OrderServiceTest {
     @DisplayName("완료되지 않은 매장 주문이 있는 주문 테이블은 빈 테이블로 설정하지 않는다.")
     @Test
     void completeNotTable() {
-        final OrderTable orderTable = orderTableRepository.save(orderTable(true, 4));
-        orderRepository.save(order(OrderStatus.ACCEPTED, orderTable));
-        final Order expected = orderRepository.save(order(OrderStatus.SERVED, orderTable));
+        final OrderTable orderTable = orderTableRepository.save(orderTable(4, true));
+        orderRepository.save(eatInOrder(OrderStatus.ACCEPTED, orderTable));
+        final Order expected = eatInOrder(OrderStatus.SERVED, orderTable);
+        orderRepository.save(expected);
+
         final Order actual = orderService.complete(expected.getId());
         assertAll(
             () -> assertThat(actual.getStatus()).isEqualTo(OrderStatus.COMPLETED),
@@ -342,46 +388,11 @@ class OrderServiceTest {
     @DisplayName("주문의 목록을 조회할 수 있다.")
     @Test
     void findAll() {
-        final OrderTable orderTable = orderTableRepository.save(orderTable(true, 4));
-        orderRepository.save(order(OrderStatus.SERVED, orderTable));
-        orderRepository.save(order(OrderStatus.DELIVERED, "서울시 송파구 위례성대로 2"));
+        final OrderTable orderTable = orderTableRepository.save(orderTable(4, true));
+        orderRepository.save(eatInOrder(OrderStatus.SERVED, orderTable));
+        orderRepository.save(deliveryOrder(OrderStatus.DELIVERED, "서울시 송파구 위례성대로 2"));
         final List<Order> actual = orderService.findAll();
         assertThat(actual).hasSize(2);
-    }
-
-    private Order createOrderRequest(
-        final OrderType type,
-        final String deliveryAddress,
-        final OrderLineItem... orderLineItems
-    ) {
-        final Order order = new Order();
-        order.setType(type);
-        order.setDeliveryAddress(deliveryAddress);
-        order.setOrderLineItems(Arrays.asList(orderLineItems));
-        return order;
-    }
-
-    private Order createOrderRequest(final OrderType orderType, final OrderLineItem... orderLineItems) {
-        return createOrderRequest(orderType, Arrays.asList(orderLineItems));
-    }
-
-    private Order createOrderRequest(final OrderType orderType, final List<OrderLineItem> orderLineItems) {
-        final Order order = new Order();
-        order.setType(orderType);
-        order.setOrderLineItems(orderLineItems);
-        return order;
-    }
-
-    private Order createOrderRequest(
-        final OrderType type,
-        final UUID orderTableId,
-        final OrderLineItem... orderLineItems
-    ) {
-        final Order order = new Order();
-        order.setType(type);
-        order.setOrderTableId(orderTableId);
-        order.setOrderLineItems(Arrays.asList(orderLineItems));
-        return order;
     }
 
     private static OrderLineItem createOrderLineItemRequest(final UUID menuId, final long price, final long quantity) {
@@ -393,3 +404,4 @@ class OrderServiceTest {
         return orderLineItem;
     }
 }
+

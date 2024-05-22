@@ -56,7 +56,7 @@ class OrderTableServiceTest {
     @DisplayName("빈 테이블을 해지할 수 있다.")
     @Test
     void sit() {
-        final UUID orderTableId = orderTableRepository.save(orderTable(false, 0)).getId();
+        final UUID orderTableId = orderTableRepository.save(orderTable(0, false)).getId();
         final OrderTable actual = orderTableService.sit(orderTableId);
         assertThat(actual.isOccupied()).isTrue();
     }
@@ -64,7 +64,7 @@ class OrderTableServiceTest {
     @DisplayName("빈 테이블로 설정할 수 있다.")
     @Test
     void clear() {
-        final UUID orderTableId = orderTableRepository.save(orderTable(true, 4)).getId();
+        final UUID orderTableId = orderTableRepository.save(orderTable(4, true)).getId();
         final OrderTable actual = orderTableService.clear(orderTableId);
         assertAll(
             () -> assertThat(actual.getNumberOfGuests()).isZero(),
@@ -75,9 +75,9 @@ class OrderTableServiceTest {
     @DisplayName("완료되지 않은 주문이 있는 주문 테이블은 빈 테이블로 설정할 수 없다.")
     @Test
     void clearWithUncompletedOrders() {
-        final OrderTable orderTable = orderTableRepository.save(orderTable(true, 4));
+        final OrderTable orderTable = orderTableRepository.save(orderTable(4, true));
         final UUID orderTableId = orderTable.getId();
-        orderRepository.save(order(OrderStatus.ACCEPTED, orderTable));
+        orderRepository.save(eatInOrder(OrderStatus.ACCEPTED, orderTable));
         assertThatThrownBy(() -> orderTableService.clear(orderTableId))
             .isInstanceOf(IllegalStateException.class);
     }
@@ -85,7 +85,7 @@ class OrderTableServiceTest {
     @DisplayName("방문한 손님 수를 변경할 수 있다.")
     @Test
     void changeNumberOfGuests() {
-        final UUID orderTableId = orderTableRepository.save(orderTable(true, 0)).getId();
+        final UUID orderTableId = orderTableRepository.save(orderTable(0, true)).getId();
         final int expected = 4;
         final OrderTable actual = orderTableService.changeNumberOfGuests(orderTableId, expected);
         assertThat(actual.getNumberOfGuests()).isEqualTo(expected);
@@ -95,7 +95,7 @@ class OrderTableServiceTest {
     @ValueSource(ints = -1)
     @ParameterizedTest
     void changeNumberOfGuests(final int numberOfGuests) {
-        final UUID orderTableId = orderTableRepository.save(orderTable(true, 0)).getId();
+        final UUID orderTableId = orderTableRepository.save(orderTable(0, true)).getId();
         assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, numberOfGuests))
             .isInstanceOf(IllegalArgumentException.class);
     }
@@ -103,7 +103,7 @@ class OrderTableServiceTest {
     @DisplayName("빈 테이블은 방문한 손님 수를 변경할 수 없다.")
     @Test
     void changeNumberOfGuestsInEmptyTable() {
-        final UUID orderTableId = orderTableRepository.save(orderTable(false, 0)).getId();
+        final UUID orderTableId = orderTableRepository.save(orderTable(0, false)).getId();
         final int expected = 4;
         assertThatThrownBy(() -> orderTableService.changeNumberOfGuests(orderTableId, expected))
             .isInstanceOf(IllegalStateException.class);

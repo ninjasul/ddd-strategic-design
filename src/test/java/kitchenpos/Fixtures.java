@@ -1,25 +1,26 @@
 package kitchenpos;
 
 import kitchenpos.application.FakePurgomalumClient;
+import kitchenpos.domain.DeliveryOrder;
+import kitchenpos.domain.EatInOrder;
 import kitchenpos.domain.Menu;
 import kitchenpos.domain.MenuGroup;
 import kitchenpos.domain.MenuProduct;
+import kitchenpos.domain.NullTypeOrder;
 import kitchenpos.domain.Order;
 import kitchenpos.domain.OrderLineItem;
 import kitchenpos.domain.OrderStatus;
 import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderType;
 import kitchenpos.domain.Product;
+import kitchenpos.domain.TakeoutOrder;
 import kitchenpos.infra.PurgomalumClient;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
-
 public class Fixtures {
 
 	public static final PurgomalumClient purgomalumClient = new FakePurgomalumClient();
@@ -31,7 +32,7 @@ public class Fixtures {
 	}
 
 	public static Menu menu(final long price, final MenuProduct... menuProducts) {
-		return menu(price, false, menuProducts);
+		return menu(price, true, menuProducts);
 	}
 
 	public static Menu menu(final long price, final boolean displayed, final MenuProduct... menuProducts) {
@@ -61,36 +62,75 @@ public class Fixtures {
 		return new MenuProduct(new Random().nextLong(), product, quantity);
 	}
 
-	public static Order order(final OrderStatus status, final String deliveryAddress) {
-		final Order order = new Order();
-		order.setId(UUID.randomUUID());
-		order.setType(OrderType.DELIVERY);
-		order.setStatus(status);
-		order.setOrderDateTime(LocalDateTime.of(2020, 1, 1, 12, 0));
-		order.setOrderLineItems(Arrays.asList(orderLineItem()));
-		order.setDeliveryAddress(deliveryAddress);
-		return order;
+	public static Order order(OrderType type, UUID menuId) {
+		List<OrderLineItem> orderLineItems = List.of(createOrderLineItemRequest(menuId, 19_000L, 3L));
+
+		if (type == OrderType.TAKEOUT) {
+			return new TakeoutOrder(
+				OrderStatus.WAITING,
+				LocalDateTime.now(),
+				orderLineItems
+			);
+		}
+
+		if (type == OrderType.DELIVERY) {
+			return new DeliveryOrder(
+				OrderStatus.WAITING,
+				LocalDateTime.now(),
+				orderLineItems,
+				"서울시 송파구 위례성대로 2"
+			);
+		}
+
+		if (type == OrderType.EAT_IN) {
+			return new EatInOrder(
+				OrderStatus.WAITING,
+				LocalDateTime.now(),
+				orderLineItems,
+				orderTable(4, true)
+			);
+		}
+
+		return new NullTypeOrder(
+			OrderStatus.WAITING,
+			LocalDateTime.now(),
+			orderLineItems
+		);
 	}
 
-	public static Order order(final OrderStatus status) {
-		final Order order = new Order();
-		order.setId(UUID.randomUUID());
-		order.setType(OrderType.TAKEOUT);
-		order.setStatus(status);
-		order.setOrderDateTime(LocalDateTime.of(2020, 1, 1, 12, 0));
-		order.setOrderLineItems(Arrays.asList(orderLineItem()));
-		return order;
+	public static OrderLineItem createOrderLineItemRequest(final UUID menuId, final long price, final long quantity) {
+		final OrderLineItem orderLineItem = new OrderLineItem();
+		orderLineItem.setSeq(new Random().nextLong());
+		orderLineItem.setMenuId(menuId);
+		orderLineItem.setPrice(BigDecimal.valueOf(price));
+		orderLineItem.setQuantity(quantity);
+		return orderLineItem;
 	}
 
-	public static Order order(final OrderStatus status, final OrderTable orderTable) {
-		final Order order = new Order();
-		order.setId(UUID.randomUUID());
-		order.setType(OrderType.EAT_IN);
-		order.setStatus(status);
-		order.setOrderDateTime(LocalDateTime.of(2020, 1, 1, 12, 0));
-		order.setOrderLineItems(Arrays.asList(orderLineItem()));
-		order.setOrderTable(orderTable);
-		return order;
+	public static DeliveryOrder deliveryOrder(final OrderStatus status, final String deliveryAddress) {
+		return new DeliveryOrder(
+			status,
+			LocalDateTime.of(2020, 1, 1, 12, 0),
+			List.of(orderLineItem()),
+			deliveryAddress
+		);
+	}
+
+	public static EatInOrder eatInOrder(final OrderStatus status, final OrderTable orderTable) {
+		return new EatInOrder(
+			status,
+			LocalDateTime.of(2020, 1, 1, 12, 0),
+			List.of(orderLineItem()),
+			orderTable
+		);
+	}
+
+	public static TakeoutOrder takeoutOrder(final OrderStatus status) {
+		return new TakeoutOrder(
+			status,
+			LocalDateTime.of(2020, 1, 1, 12, 0),
+			List.of(orderLineItem())
+		);
 	}
 
 	public static OrderLineItem orderLineItem() {
@@ -101,10 +141,10 @@ public class Fixtures {
 	}
 
 	public static OrderTable orderTable() {
-		return orderTable(false, 0);
+		return orderTable(0, false);
 	}
 
-	public static OrderTable orderTable(final boolean occupied, final int numberOfGuests) {
+	public static OrderTable orderTable(final int numberOfGuests, final boolean occupied) {
 		return new OrderTable(
 			UUID.randomUUID(),
 			"1번",
@@ -121,3 +161,4 @@ public class Fixtures {
 		return new Product(name, BigDecimal.valueOf(price), purgomalumClient);
 	}
 }
+
