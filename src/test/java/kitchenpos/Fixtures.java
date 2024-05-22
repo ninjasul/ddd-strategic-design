@@ -1,20 +1,20 @@
 package kitchenpos;
 
-import kitchenpos.application.FakePurgomalumClient;
-import kitchenpos.domain.DeliveryOrder;
-import kitchenpos.domain.EatInOrder;
-import kitchenpos.domain.Menu;
-import kitchenpos.domain.MenuGroup;
-import kitchenpos.domain.MenuProduct;
-import kitchenpos.domain.OrderLineItems;
-import kitchenpos.domain.OrderStatus;
-import kitchenpos.domain.OrderTable;
-import kitchenpos.domain.OrderType;
-import kitchenpos.domain.Product;
-import kitchenpos.domain.TakeoutOrder;
-import kitchenpos.infra.PurgomalumClient;
-import kitchenpos.ui.dto.OrderCreationRequest;
-import kitchenpos.ui.dto.OrderLineItemCreationRequest;
+import kitchenpos.common.infra.FakePurgomalumClient;
+import kitchenpos.order.domain.DeliveryOrder;
+import kitchenpos.order.domain.EatInOrder;
+import kitchenpos.menu.domain.Menu;
+import kitchenpos.menu.domain.MenuGroup;
+import kitchenpos.menu.domain.MenuProduct;
+import kitchenpos.order.domain.OrderLineItems;
+import kitchenpos.order.domain.OrderStatus;
+import kitchenpos.order.domain.OrderTable;
+import kitchenpos.order.domain.OrderType;
+import kitchenpos.product.domain.Product;
+import kitchenpos.order.domain.TakeoutOrder;
+import kitchenpos.common.infra.PurgomalumClient;
+import kitchenpos.order.ui.dto.OrderCreationRequest;
+import kitchenpos.order.ui.dto.OrderLineItemCreationRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
