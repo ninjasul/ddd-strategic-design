@@ -17,7 +17,7 @@ public class Quantity {
 	protected Quantity() {
 	}
 
-	protected Quantity(long value) {
+	public Quantity(long value) {
 		if (value < 0) {
 			throw new IllegalArgumentException(INVALID_VALUE_ERROR);
 		}
