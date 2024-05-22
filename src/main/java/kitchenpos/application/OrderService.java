@@ -1,117 +1,78 @@
 package kitchenpos.application;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import kitchenpos.domain.DeliveryOrder;
-import kitchenpos.domain.EatInOrder;
+import kitchenpos.domain.factory.OrderFactory;
+import kitchenpos.domain.factory.OrderFactoryProvider;
 import kitchenpos.domain.Menu;
 import kitchenpos.domain.MenuRepository;
 import kitchenpos.domain.Order;
-import kitchenpos.domain.OrderLineItem;
+import kitchenpos.domain.OrderLineItems;
 import kitchenpos.domain.OrderRepository;
-import kitchenpos.domain.OrderStatus;
 import kitchenpos.domain.OrderTable;
 import kitchenpos.domain.OrderTableRepository;
 import kitchenpos.domain.OrderType;
-import kitchenpos.domain.TakeoutOrder;
 import kitchenpos.infra.KitchenridersClient;
+import kitchenpos.ui.dto.OrderCreationRequest;
+import kitchenpos.ui.dto.OrderLineItemCreationRequest;
 
 @Service
 public class OrderService {
+    private static final String ORDER_TABLE_NOT_FOUND_ERROR = "주문 테이블을 찾을 수 없습니다.";
+
     private final OrderRepository orderRepository;
     private final MenuRepository menuRepository;
     private final OrderTableRepository orderTableRepository;
     private final KitchenridersClient kitchenridersClient;
+    private final OrderFactoryProvider orderFactoryProvider;
 
     public OrderService(
         final OrderRepository orderRepository,
         final MenuRepository menuRepository,
         final OrderTableRepository orderTableRepository,
-        final KitchenridersClient kitchenridersClient
+        final KitchenridersClient kitchenridersClient,
+        final OrderFactoryProvider orderFactoryProvider
     ) {
         this.orderRepository = orderRepository;
         this.menuRepository = menuRepository;
         this.orderTableRepository = orderTableRepository;
         this.kitchenridersClient = kitchenridersClient;
+        this.orderFactoryProvider = orderFactoryProvider;
     }
 
     @Transactional
-    public Order create(final Order request) {
-        final OrderType type = request.getType();
-        if (Objects.isNull(type)) {
-            throw new IllegalArgumentException();
-        }
-        final List<OrderLineItem> orderLineItemRequests = request.getOrderLineItems();
-        if (Objects.isNull(orderLineItemRequests) || orderLineItemRequests.isEmpty()) {
-            throw new IllegalArgumentException();
-        }
-        final List<Menu> menus = menuRepository.findAllByIdIn(
-            orderLineItemRequests.stream()
-                .map(OrderLineItem::getMenuId)
+    public Order create(final OrderCreationRequest request) {
+        Map<UUID, Menu> menus = menuRepository.findAllByIdIn(
+            request.orderLineItemsRequest()
+                .stream()
+                .map(OrderLineItemCreationRequest::menuId)
                 .toList()
-        );
-        if (menus.size() != orderLineItemRequests.size()) {
-            throw new IllegalArgumentException();
-        }
-        final List<OrderLineItem> orderLineItems = new ArrayList<>();
-        for (final OrderLineItem orderLineItemRequest : orderLineItemRequests) {
-            final long quantity = orderLineItemRequest.getQuantity();
-            if (type != OrderType.EAT_IN) {
-                if (quantity < 0) {
-                    throw new IllegalArgumentException();
-                }
-            }
-            final Menu menu = menuRepository.findById(orderLineItemRequest.getMenuId())
-                .orElseThrow(NoSuchElementException::new);
-            if (!menu.isDisplayed()) {
-                throw new IllegalStateException();
-            }
-            if (menu.getPrice().compareTo(orderLineItemRequest.getPrice()) != 0) {
-                throw new IllegalArgumentException();
-            }
-            final OrderLineItem orderLineItem = new OrderLineItem();
-            orderLineItem.setMenu(menu);
-            orderLineItem.setQuantity(quantity);
-            orderLineItems.add(orderLineItem);
-        }
-        Order order;
-        if (type == OrderType.DELIVERY) {
-            DeliveryOrder deliveryOrder = (DeliveryOrder) request;
-            order = new DeliveryOrder(
-                OrderStatus.WAITING,
-                LocalDateTime.now(),
-                orderLineItems,
-                deliveryOrder.getDeliveryAddress()
-            );
-        } else if (type == OrderType.EAT_IN) {
-            EatInOrder eatInOrder = (EatInOrder) request;
-            final OrderTable orderTable = orderTableRepository.findById(eatInOrder.getOrderTableId())
-                .orElseThrow(NoSuchElementException::new);
+        ).stream()
+        .collect(Collectors.toMap(Menu::getId, Function.identity()));
+
+        OrderLineItems orderLineItems = OrderLineItems.fromRequests(request.orderLineItemsRequest(), menus);
+
+        OrderTable orderTable = null;
+        if (request.type() == OrderType.EAT_IN) {
+            orderTable = orderTableRepository.findById(request.orderTableId())
+                .orElseThrow(() -> new NoSuchElementException(ORDER_TABLE_NOT_FOUND_ERROR));
+
             if (!orderTable.isOccupied()) {
                 throw new IllegalStateException();
             }
-            order = new EatInOrder(
-                OrderStatus.WAITING,
-                LocalDateTime.now(),
-                orderLineItems,
-                orderTable
-            );
-        } else {
-            order = new TakeoutOrder(
-                OrderStatus.WAITING,
-                LocalDateTime.now(),
-                orderLineItems
-            );
         }
+
+        OrderFactory orderFactory = orderFactoryProvider.getFactory(request.type());
+        Order order = orderFactory.createOrder(orderLineItems, orderTable, request.deliveryAddress());
+
         return orderRepository.save(order);
     }
 
@@ -119,84 +80,35 @@ public class OrderService {
     public Order accept(final UUID orderId) {
         final Order order = orderRepository.findById(orderId)
             .orElseThrow(NoSuchElementException::new);
-        if (order.getStatus() != OrderStatus.WAITING) {
-            throw new IllegalStateException();
-        }
-        if (order instanceof DeliveryOrder) {
-            DeliveryOrder deliveryOrder = (DeliveryOrder) order;
-            BigDecimal sum = BigDecimal.ZERO;
-            for (final OrderLineItem orderLineItem : order.getOrderLineItems()) {
-                sum = sum.add(
-                    orderLineItem.getMenu().getPrice().multiply(BigDecimal.valueOf(orderLineItem.getQuantity()))
-                );
-            }
-            kitchenridersClient.requestDelivery(orderId, sum, deliveryOrder.getDeliveryAddress());
-        }
-        order.setStatus(OrderStatus.ACCEPTED);
-        return order;
+        return order.accepted(kitchenridersClient);
     }
 
     @Transactional
     public Order serve(final UUID orderId) {
         final Order order = orderRepository.findById(orderId)
             .orElseThrow(NoSuchElementException::new);
-        if (order.getStatus() != OrderStatus.ACCEPTED) {
-            throw new IllegalStateException();
-        }
-        order.setStatus(OrderStatus.SERVED);
-        return order;
+        return order.served();
     }
 
     @Transactional
     public Order startDelivery(final UUID orderId) {
         final Order order = orderRepository.findById(orderId)
             .orElseThrow(NoSuchElementException::new);
-        if (!(order instanceof DeliveryOrder)) {
-            throw new IllegalStateException();
-        }
-        if (order.getStatus() != OrderStatus.SERVED) {
-            throw new IllegalStateException();
-        }
-        order.setStatus(OrderStatus.DELIVERING);
-        return order;
+        return order.delivering();
     }
 
     @Transactional
     public Order completeDelivery(final UUID orderId) {
         final Order order = orderRepository.findById(orderId)
             .orElseThrow(NoSuchElementException::new);
-        if (order.getStatus() != OrderStatus.DELIVERING) {
-            throw new IllegalStateException();
-        }
-        order.setStatus(OrderStatus.DELIVERED);
-        return order;
+        return order.delivered();
     }
 
     @Transactional
     public Order complete(final UUID orderId) {
         final Order order = orderRepository.findById(orderId)
             .orElseThrow(NoSuchElementException::new);
-        final OrderType type = order.getType();
-        final OrderStatus status = order.getStatus();
-        if (type == OrderType.DELIVERY) {
-            if (status != OrderStatus.DELIVERED) {
-                throw new IllegalStateException();
-            }
-        }
-        if (type == OrderType.TAKEOUT || type == OrderType.EAT_IN) {
-            if (status != OrderStatus.SERVED) {
-                throw new IllegalStateException();
-            }
-        }
-        order.setStatus(OrderStatus.COMPLETED);
-        if (type == OrderType.EAT_IN) {
-            final EatInOrder eatInOrder = (EatInOrder) order;
-            final OrderTable orderTable = eatInOrder.getOrderTable();
-            if (!orderRepository.existsByOrderTableAndStatusNot(orderTable, OrderStatus.COMPLETED)) {
-                orderTable.used(false);
-            }
-        }
-        return order;
+        return order.completed(orderRepository);
     }
 
     @Transactional(readOnly = true)
@@ -204,4 +116,3 @@ public class OrderService {
         return orderRepository.findAll();
     }
 }
-

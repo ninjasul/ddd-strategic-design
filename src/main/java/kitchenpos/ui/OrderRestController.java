@@ -2,6 +2,8 @@ package kitchenpos.ui;
 
 import kitchenpos.application.OrderService;
 import kitchenpos.domain.Order;
+import kitchenpos.ui.dto.OrderCreationRequest;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,7 +27,7 @@ public class OrderRestController {
     }
 
     @PostMapping
-    public ResponseEntity<Order> create(@RequestBody final Order request) {
+    public ResponseEntity<Order> create(@RequestBody final OrderCreationRequest request) {
         final Order response = orderService.create(request);
         return ResponseEntity.created(URI.create("/api/orders/" + response.getId()))
             .body(response);

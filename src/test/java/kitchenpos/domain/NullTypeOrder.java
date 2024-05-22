@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import kitchenpos.infra.KitchenridersClient;
 
 @Entity
 @DiscriminatorValue("")
@@ -13,11 +14,35 @@ public class NullTypeOrder extends Order {
 		super();
 	}
 
+	@Override
+	public Order accepted(KitchenridersClient kitchenridersClient) {
+		return null;
+	}
+
+	@Override
+	public Order served() {
+		return null;
+	}
+
+	@Override
+	public Order delivering() {
+		return null;
+	}
+
+	@Override
+	public Order delivered() {
+		return null;
+	}
+
+	@Override
+	public Order completed(OrderRepository orderRepository) {
+		return null;
+	}
+
 	public NullTypeOrder(
 		OrderStatus status,
-		LocalDateTime orderDateTime,
-		List<OrderLineItem> orderLineItems
+		OrderLineItems orderLineItems
 	) {
-		super(null, status, orderDateTime, orderLineItems, null);
+		super(null, status, orderLineItems, null);
 	}
 }
