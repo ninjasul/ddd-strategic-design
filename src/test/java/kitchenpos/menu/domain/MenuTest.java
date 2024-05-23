@@ -18,7 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import kitchenpos.common.infra.FakePurgomalumClient;
 import kitchenpos.common.infra.PurgomalumClient;
-import kitchenpos.menu.ui.dto.MenuCreationRequest;
+import kitchenpos.menu.application.dto.MenuCreationRequest;
 import kitchenpos.product.domain.Product;
 
 class MenuTest {

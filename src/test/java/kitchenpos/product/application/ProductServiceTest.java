@@ -8,7 +8,7 @@ import kitchenpos.menu.infra.MenuRepository;
 import kitchenpos.product.domain.Product;
 import kitchenpos.product.infra.ProductRepository;
 import kitchenpos.common.infra.PurgomalumClient;
-import kitchenpos.product.ui.dto.ProductCreationRequest;
+import kitchenpos.product.application.dto.ProductCreationRequest;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

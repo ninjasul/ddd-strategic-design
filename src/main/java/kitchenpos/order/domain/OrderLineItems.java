@@ -14,7 +14,7 @@ import jakarta.persistence.ForeignKey;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import kitchenpos.menu.domain.Menu;
-import kitchenpos.order.ui.dto.OrderLineItemCreationRequest;
+import kitchenpos.order.application.dto.OrderLineItemCreationRequest;
 
 @Embeddable
 public class OrderLineItems {

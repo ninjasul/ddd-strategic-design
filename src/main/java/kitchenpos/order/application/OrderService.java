@@ -21,8 +21,8 @@ import kitchenpos.order.domain.OrderTable;
 import kitchenpos.order.infra.OrderTableRepository;
 import kitchenpos.order.domain.OrderType;
 import kitchenpos.order.infra.KitchenridersClient;
-import kitchenpos.order.ui.dto.OrderCreationRequest;
-import kitchenpos.order.ui.dto.OrderLineItemCreationRequest;
+import kitchenpos.order.application.dto.OrderCreationRequest;
+import kitchenpos.order.application.dto.OrderLineItemCreationRequest;
 
 @Service
 public class OrderService {

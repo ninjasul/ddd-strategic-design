@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import kitchenpos.menu.application.MenuService;
 import kitchenpos.menu.domain.Menu;
-import kitchenpos.menu.ui.dto.MenuCreationRequest;
+import kitchenpos.menu.application.dto.MenuCreationRequest;
 
 @RequestMapping("/api/menus")
 @RestController

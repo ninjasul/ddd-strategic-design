@@ -13,8 +13,8 @@ import kitchenpos.order.domain.OrderType;
 import kitchenpos.product.domain.Product;
 import kitchenpos.order.domain.TakeoutOrder;
 import kitchenpos.common.infra.PurgomalumClient;
-import kitchenpos.order.ui.dto.OrderCreationRequest;
-import kitchenpos.order.ui.dto.OrderLineItemCreationRequest;
+import kitchenpos.order.application.dto.OrderCreationRequest;
+import kitchenpos.order.application.dto.OrderLineItemCreationRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

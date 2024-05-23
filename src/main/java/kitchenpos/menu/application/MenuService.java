@@ -21,7 +21,7 @@ import kitchenpos.menu.infra.MenuRepository;
 import kitchenpos.product.domain.Product;
 import kitchenpos.product.infra.ProductRepository;
 import kitchenpos.common.infra.PurgomalumClient;
-import kitchenpos.menu.ui.dto.MenuCreationRequest;
+import kitchenpos.menu.application.dto.MenuCreationRequest;
 
 @Service
 public class MenuService {

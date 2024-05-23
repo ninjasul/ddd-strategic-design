@@ -36,8 +36,8 @@ import kitchenpos.order.domain.OrderStatus;
 import kitchenpos.order.domain.OrderTable;
 import kitchenpos.order.infra.OrderTableRepository;
 import kitchenpos.order.domain.OrderType;
-import kitchenpos.order.ui.dto.OrderCreationRequest;
-import kitchenpos.order.ui.dto.OrderLineItemCreationRequest;
+import kitchenpos.order.application.dto.OrderCreationRequest;
+import kitchenpos.order.application.dto.OrderLineItemCreationRequest;
 
 class OrderServiceTest {
     private OrderRepository orderRepository;
