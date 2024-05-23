@@ -9,8 +9,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import kitchenpos.order.infra.KitchenridersClient;
-import kitchenpos.order.infra.OrderRepository;
 
 @Entity
 @DiscriminatorValue("DELIVERY")

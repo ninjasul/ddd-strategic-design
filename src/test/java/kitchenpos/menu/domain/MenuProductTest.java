@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import kitchenpos.common.infra.FakePurgomalumClient;
-import kitchenpos.common.infra.PurgomalumClient;
+import kitchenpos.common.domain.PurgomalumClient;
 import kitchenpos.product.domain.Product;
 import kitchenpos.common.domain.Quantity;
 

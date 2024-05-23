@@ -10,10 +10,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import kitchenpos.menu.domain.Menu;
-import kitchenpos.menu.infra.MenuRepository;
+import kitchenpos.menu.domain.MenuRepository;
 import kitchenpos.product.domain.Product;
-import kitchenpos.product.infra.ProductRepository;
-import kitchenpos.common.infra.PurgomalumClient;
+import kitchenpos.product.domain.ProductRepository;
+import kitchenpos.common.domain.PurgomalumClient;
 import kitchenpos.product.application.dto.ProductCreationRequest;
 
 @Service

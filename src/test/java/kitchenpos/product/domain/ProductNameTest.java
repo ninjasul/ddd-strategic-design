@@ -10,7 +10,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import kitchenpos.common.infra.FakePurgomalumClient;
-import kitchenpos.common.infra.PurgomalumClient;
+import kitchenpos.common.domain.PurgomalumClient;
 
 class ProductNameTest {
 	private PurgomalumClient purgomalumClient = new FakePurgomalumClient();

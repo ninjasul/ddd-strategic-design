@@ -13,14 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import kitchenpos.order.factory.OrderFactory;
 import kitchenpos.order.factory.OrderFactoryProvider;
 import kitchenpos.menu.domain.Menu;
-import kitchenpos.menu.infra.MenuRepository;
+import kitchenpos.menu.domain.MenuRepository;
 import kitchenpos.order.domain.Order;
 import kitchenpos.order.domain.OrderLineItems;
-import kitchenpos.order.infra.OrderRepository;
+import kitchenpos.order.domain.OrderRepository;
 import kitchenpos.order.domain.OrderTable;
-import kitchenpos.order.infra.OrderTableRepository;
+import kitchenpos.order.domain.OrderTableRepository;
 import kitchenpos.order.domain.OrderType;
-import kitchenpos.order.infra.KitchenridersClient;
+import kitchenpos.order.domain.KitchenridersClient;
 import kitchenpos.order.application.dto.OrderCreationRequest;
 import kitchenpos.order.application.dto.OrderLineItemCreationRequest;
 

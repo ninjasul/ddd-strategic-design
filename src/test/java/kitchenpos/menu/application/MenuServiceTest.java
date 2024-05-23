@@ -26,12 +26,12 @@ import kitchenpos.product.infra.InMemoryProductRepository;
 import kitchenpos.menu.domain.Menu;
 import kitchenpos.menu.infra.InMemoryMenuGroupRepository;
 import kitchenpos.menu.infra.InMemoryMenuRepository;
-import kitchenpos.menu.infra.MenuGroupRepository;
+import kitchenpos.menu.domain.MenuGroupRepository;
 import kitchenpos.menu.domain.MenuProduct;
-import kitchenpos.menu.infra.MenuRepository;
+import kitchenpos.menu.domain.MenuRepository;
 import kitchenpos.product.domain.Product;
-import kitchenpos.product.infra.ProductRepository;
-import kitchenpos.common.infra.PurgomalumClient;
+import kitchenpos.product.domain.ProductRepository;
+import kitchenpos.common.domain.PurgomalumClient;
 import kitchenpos.menu.application.dto.MenuCreationRequest;
 
 class MenuServiceTest {

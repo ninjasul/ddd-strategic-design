@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import kitchenpos.menu.domain.MenuGroup;
-import kitchenpos.menu.infra.MenuGroupRepository;
+import kitchenpos.menu.domain.MenuGroupRepository;
 
 @Service
 public class MenuGroupService {

@@ -17,8 +17,6 @@ import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import kitchenpos.order.infra.OrderRepository;
-import kitchenpos.order.infra.KitchenridersClient;
 
 @Table(name = "orders")
 @Entity

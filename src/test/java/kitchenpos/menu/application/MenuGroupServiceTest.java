@@ -12,10 +12,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 
-import kitchenpos.menu.application.MenuGroupService;
 import kitchenpos.menu.domain.MenuGroup;
 import kitchenpos.menu.infra.InMemoryMenuGroupRepository;
-import kitchenpos.menu.infra.MenuGroupRepository;
+import kitchenpos.menu.domain.MenuGroupRepository;
 
 class MenuGroupServiceTest {
     private MenuGroupRepository menuGroupRepository;

@@ -2,11 +2,6 @@ package kitchenpos.order.domain;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import kitchenpos.order.infra.KitchenridersClient;
-import kitchenpos.order.domain.Order;
-import kitchenpos.order.domain.OrderLineItems;
-import kitchenpos.order.domain.OrderStatus;
-import kitchenpos.order.infra.OrderRepository;
 
 @Entity
 @DiscriminatorValue("")

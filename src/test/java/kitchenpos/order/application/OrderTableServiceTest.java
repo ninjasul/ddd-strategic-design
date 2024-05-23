@@ -14,13 +14,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import kitchenpos.order.application.OrderTableService;
 import kitchenpos.order.infra.InMemoryOrderRepository;
 import kitchenpos.order.infra.InMemoryOrderTableRepository;
-import kitchenpos.order.infra.OrderRepository;
+import kitchenpos.order.domain.OrderRepository;
 import kitchenpos.order.domain.OrderStatus;
 import kitchenpos.order.domain.OrderTable;
-import kitchenpos.order.infra.OrderTableRepository;
+import kitchenpos.order.domain.OrderTableRepository;
 
 class OrderTableServiceTest {
     private OrderTableRepository orderTableRepository;

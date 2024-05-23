@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import kitchenpos.menu.domain.Menu;
+import kitchenpos.menu.domain.MenuRepository;
 
 public interface JpaMenuRepository extends MenuRepository, JpaRepository<Menu, UUID> {
 	@Query("select m from Menu m join m.menuProducts.value mp where mp.product.id = :productId")

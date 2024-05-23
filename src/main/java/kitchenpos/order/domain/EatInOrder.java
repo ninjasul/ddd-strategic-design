@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import kitchenpos.order.infra.KitchenridersClient;
-import kitchenpos.order.infra.OrderRepository;
 
 @Entity
 @DiscriminatorValue("EAT_IN")
